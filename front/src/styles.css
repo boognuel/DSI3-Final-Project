@@ -1,1 +1,87 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --bg: #140336;
+  --bg-elevado: #1d0a4a;
+  --bg-footer: #0d0225;
+  --borde: rgba(243, 231, 235, 0.14);
+  --crema: #f3e7eb;
+  --texto: #fdf6f4;
+  --texto-suave: #c4b6d8;
+  --amarillo: #feca03;
+  --amarillo-hover: #ffd633;
+  --naranja: #f28b4b;
+  --rosa: #e85d8a;
+  --verde: #4cc38a;
+  --error: #ff6b7a;
+  --ok: #4cc38a;
+  --radio: 16px;
+  --radio-sm: 10px;
+  --sombra: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --fuente: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  background: var(--bg);
+  color: var(--texto);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0 0 0.5rem; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+p { margin: 0 0 1rem; }
+a { color: var(--amarillo); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; display: block; }
+
+app-root { display: flex; flex-direction: column; min-height: 100vh; }
+.contenido { flex: 1; }
+.container { width: min(1120px, 100% - 2rem); margin-inline: auto; }
+
+/* botones */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.75rem 1.4rem; border-radius: 999px; border: 2px solid transparent;
+  font: 600 0.95rem var(--fuente); cursor: pointer; text-decoration: none;
+  transition: transform 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn:hover { transform: translateY(-1px); text-decoration: none; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--amarillo); color: var(--bg); }
+.btn-primary:hover { background: var(--amarillo-hover); }
+.btn-ghost { background: transparent; color: var(--texto); border-color: var(--borde); }
+.btn-ghost:hover { border-color: var(--amarillo); color: var(--amarillo); }
+.btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
+.btn-block { width: 100%; }
+
+/* tarjetas y etiquetas */
+.card { background: var(--bg-elevado); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); }
+.badge { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--amarillo); color: var(--bg); }
+.badge-verde { background: var(--verde); }
+.badge-naranja { background: var(--naranja); }
+
+/* formularios */
+.campo { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+.campo label { font-size: 0.85rem; font-weight: 500; color: var(--crema); }
+.campo input {
+  padding: 0.75rem 1rem; border-radius: var(--radio-sm); border: 1px solid var(--borde);
+  background: var(--bg); color: var(--texto); font: 400 1rem var(--fuente);
+}
+.campo input::placeholder { color: var(--texto-suave); opacity: 0.7; }
+.campo input:focus { outline: 2px solid var(--amarillo); outline-offset: 1px; border-color: transparent; }
+.campo input.invalido { border-color: var(--error); }
+.campo .ayuda { font-size: 0.78rem; color: var(--texto-suave); }
+.campo .error { font-size: 0.78rem; color: var(--error); }
+
+/* mensajes */
+.alerta { padding: 0.75rem 1rem; border-radius: var(--radio-sm); font-size: 0.9rem; margin-bottom: 1rem; border: 1px solid; }
+.alerta-error { color: var(--error); border-color: var(--error); background: rgba(255, 107, 122, 0.08); }
+.alerta-ok { color: var(--ok); border-color: var(--ok); background: rgba(76, 195, 138, 0.08); }
+
+/* páginas de autenticación */
+.auth-pagina { display: grid; place-items: center; padding: 3rem 1rem; }
+.auth-tarjeta { width: min(440px, 100%); padding: 2rem; }
+.auth-tarjeta h1 { font-size: 1.6rem; }
+.auth-tarjeta .sub { color: var(--texto-suave); margin-bottom: 1.5rem; }
+.auth-pie { margin-top: 1.25rem; text-align: center; font-size: 0.9rem; color: var(--texto-suave); margin-bottom: 0; }
