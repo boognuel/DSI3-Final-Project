@@ -1,5 +1,6 @@
 package co.edu.unbosque.configuration;
 
+import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,12 +9,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import co.edu.unbosque.model.Categoria;
 import co.edu.unbosque.model.User;
+import co.edu.unbosque.repository.CategoriaRepository;
 import co.edu.unbosque.repository.UserRepository;
 
 /**
- * Carga los datos iniciales de la base de datos al arrancar la aplicación. Crea el usuario
- * administrador si todavía no existe.
+ * Carga los datos iniciales de la base de datos al arrancar la aplicación: el usuario
+ * administrador y las categorías básicas de planes, si todavía no existen.
  */
 @Configuration
 public class LoadDatabase {
@@ -49,5 +52,29 @@ public class LoadDatabase {
 				log.info("Precargando usuario administrador");
 			}
 		};
+	}
+
+	/** Categorías que pide el requisito; el administrador puede agregar más. */
+	private static final Map<String, String> CATEGORIAS = Map.of("bailar", "Discotecas y sitios para bailar",
+			"comer", "Restaurantes, panaderías y comidas rápidas", "tomar", "Bares, cafés y sitios para tomar algo",
+			"jugar", "Videojuegos, bolos, billar y juegos de mesa");
+
+	/**
+	 * Crea las categorías básicas de planes que todavía no existan.
+	 *
+	 * @param categoriaRepo repositorio de categorías
+	 * @return tarea que se ejecuta al iniciar la aplicación
+	 */
+	@Bean
+	CommandLineRunner initCategorias(CategoriaRepository categoriaRepo) {
+		return args -> CATEGORIAS.forEach((nombre, descripcion) -> {
+			if (!categoriaRepo.existsByNombreIgnoreCase(nombre)) {
+				Categoria c = new Categoria();
+				c.setNombre(nombre);
+				c.setDescripcion(descripcion);
+				categoriaRepo.save(c);
+				log.info("Precargando categoría {}", nombre);
+			}
+		});
 	}
 }

@@ -56,7 +56,9 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/invitacion/responder").permitAll()
 						.requestMatchers("/", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("/admin/**", "/user/**").hasRole("ADMIN")
+						// El catálogo lo consulta cualquier usuario con sesión, pero solo el admin lo modifica
+						.requestMatchers(HttpMethod.GET, "/categoria/**", "/zona/**", "/lugar/**").authenticated()
+						.requestMatchers("/admin/**", "/user/**", "/categoria/**", "/zona/**", "/lugar/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 				.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
