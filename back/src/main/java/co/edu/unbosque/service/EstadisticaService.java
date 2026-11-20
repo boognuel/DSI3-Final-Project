@@ -56,6 +56,7 @@ public class EstadisticaService {
 		List<Conteo> invitaciones = porEstado.entrySet().stream()
 				.map(e -> new Conteo(e.getKey().name(), e.getValue())).toList();
 
-		return new EstadisticasDTO(usuarios, lugares, invitaciones);
+		// EstadisticasDTO es un record con datos: la alerta de clase sin estado no aplica
+		return new EstadisticasDTO(usuarios, lugares, invitaciones); // skipcq: JAVA-W1035
 	}
 }
