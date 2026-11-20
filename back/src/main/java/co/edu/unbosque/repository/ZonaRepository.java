@@ -1,5 +1,6 @@
 package co.edu.unbosque.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import co.edu.unbosque.model.Zona;
@@ -32,4 +33,12 @@ public interface ZonaRepository extends JpaRepository<Zona, Long> {
 	 * @return zonas ordenadas por nombre
 	 */
 	List<Zona> findAllByOrderByNombreAsc();
+
+	/**
+	 * Lista las zonas cuyo gasto mínimo cabe en el presupuesto, de la más económica a la más costosa.
+	 *
+	 * @param presupuesto dinero por persona
+	 * @return zonas con gasto mínimo menor o igual al presupuesto
+	 */
+	List<Zona> findByGastoMinimoLessThanEqualOrderByGastoMinimoAsc(BigDecimal presupuesto);
 }

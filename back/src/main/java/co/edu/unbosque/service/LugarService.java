@@ -1,5 +1,7 @@
 package co.edu.unbosque.service;
 
+import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -69,6 +71,20 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 	 */
 	public List<LugarDTO> filtrar(Long zonaId, Long categoriaId) {
 		return lugarRepo.buscar(zonaId, categoriaId).stream().map(this::toDTO).toList();
+	}
+
+	/**
+	 * Lista los lugares que caben en el presupuesto, del más económico al más costoso. Si se indican
+	 * categorías, solo se incluyen los lugares de esas categorías.
+	 *
+	 * @param presupuesto  dinero por persona
+	 * @param categoriaIds categorías que le gustan al usuario; nula o vacía para todas
+	 * @return lugares recomendados
+	 */
+	public List<LugarDTO> recomendar(BigDecimal presupuesto, Collection<Long> categoriaIds) {
+		List<Lugar> lugares = categoriaIds == null || categoriaIds.isEmpty() ? lugarRepo.alcanzables(presupuesto)
+				: lugarRepo.alcanzablesEnCategorias(presupuesto, categoriaIds);
+		return lugares.stream().map(this::toDTO).toList();
 	}
 
 	/**

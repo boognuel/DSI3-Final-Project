@@ -1,6 +1,7 @@
 package co.edu.unbosque.repository;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,6 +23,28 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 	@Query("select l from Lugar l where (:zonaId is null or l.zona.id = :zonaId) "
 			+ "and (:categoriaId is null or l.categoria.id = :categoriaId) order by l.costoEstimado asc, l.nombre asc")
 	List<Lugar> buscar(@Param("zonaId") Long zonaId, @Param("categoriaId") Long categoriaId);
+
+	/**
+	 * Lista los lugares que caben en el presupuesto, del más económico al más costoso.
+	 *
+	 * @param presupuesto dinero por persona
+	 * @return lugares con costo estimado menor o igual al presupuesto
+	 */
+	@Query("select l from Lugar l where l.costoEstimado <= :presupuesto order by l.costoEstimado asc, l.nombre asc")
+	List<Lugar> alcanzables(@Param("presupuesto") BigDecimal presupuesto);
+
+	/**
+	 * Lista los lugares de las categorías indicadas que caben en el presupuesto, del más económico
+	 * al más costoso.
+	 *
+	 * @param presupuesto  dinero por persona
+	 * @param categoriaIds categorías que le gustan al usuario; no debe estar vacía
+	 * @return lugares de esas categorías con costo estimado menor o igual al presupuesto
+	 */
+	@Query("select l from Lugar l where l.costoEstimado <= :presupuesto and l.categoria.id in :categoriaIds "
+			+ "order by l.costoEstimado asc, l.nombre asc")
+	List<Lugar> alcanzablesEnCategorias(@Param("presupuesto") BigDecimal presupuesto,
+			@Param("categoriaIds") Collection<Long> categoriaIds);
 
 	/**
 	 * Indica si hay lugares en la zona.

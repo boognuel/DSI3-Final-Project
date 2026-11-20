@@ -1,5 +1,6 @@
 package co.edu.unbosque.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,17 @@ public class ZonaService implements CRUDOperation<ZonaDTO> {
 	@Override
 	public List<ZonaDTO> getAll() {
 		return zonaRepo.findAllByOrderByNombreAsc().stream().map(this::toDTO).toList();
+	}
+
+	/**
+	 * Lista las zonas cuyo gasto mínimo cabe en el presupuesto, de la más económica a la más costosa.
+	 *
+	 * @param presupuesto dinero por persona
+	 * @return zonas a las que alcanza el presupuesto
+	 */
+	public List<ZonaDTO> alcanzables(BigDecimal presupuesto) {
+		return zonaRepo.findByGastoMinimoLessThanEqualOrderByGastoMinimoAsc(presupuesto).stream().map(this::toDTO)
+				.toList();
 	}
 
 	/**

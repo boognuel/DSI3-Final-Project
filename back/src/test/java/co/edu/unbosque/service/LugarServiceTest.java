@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,6 +119,35 @@ class LugarServiceTest {
 		when(salidaLugarRepo.existsByLugarId(7L)).thenReturn(true);
 		assertThrows(ConflictoException.class, () -> lugarService.deleteById(7L));
 		verify(lugarRepo, never()).delete(any());
+	}
+
+	/**
+	 * Sin gustos indicados se recomiendan los lugares de todas las categorías que caben en el
+	 * presupuesto, con su zona y su categoría.
+	 */
+	@Test
+	void recomiendaSinGustosTodasLasCategorias() {
+		Lugar l = new Lugar();
+		l.setNombre("Panadería La Esquina");
+		l.setZona(zona);
+		l.setCategoria(categoria);
+		l.setCostoEstimado(new BigDecimal("5000"));
+		when(lugarRepo.alcanzables(new BigDecimal("5000"))).thenReturn(List.of(l));
+		List<LugarDTO> lugares = lugarService.recomendar(new BigDecimal("5000"), List.of());
+		assertEquals(1, lugares.size());
+		assertEquals("Usaquén", lugares.get(0).getZonaNombre());
+		assertEquals("comer", lugares.get(0).getCategoriaNombre());
+		verify(lugarRepo, never()).alcanzablesEnCategorias(any(), any());
+	}
+
+	/**
+	 * Con gustos indicados solo se buscan los lugares de esas categorías.
+	 */
+	@Test
+	void recomiendaSoloLasCategoriasDelUsuario() {
+		lugarService.recomendar(new BigDecimal("20000"), List.of(2L, 4L));
+		verify(lugarRepo).alcanzablesEnCategorias(new BigDecimal("20000"), List.of(2L, 4L));
+		verify(lugarRepo, never()).alcanzables(any());
 	}
 
 	/**
