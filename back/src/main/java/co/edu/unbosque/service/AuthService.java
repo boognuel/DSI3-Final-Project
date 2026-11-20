@@ -143,6 +143,17 @@ public class AuthService {
 		tokenRepo.save(t);
 	}
 
+	/**
+	 * Busca un token y comprueba que no se haya usado ni haya vencido.
+	 *
+	 * @param token           valor del token
+	 * @param tipo            tipo de token esperado
+	 * @param mensajeInvalido mensaje si el token no existe
+	 * @param mensajeVencido  mensaje si ya se usó o venció
+	 * @return el token
+	 * @throws DatosInvalidosException  si el token no existe
+	 * @throws RecursoExpiradoException si ya se usó o venció
+	 */
 	private TokenUsuario validarToken(String token, TipoToken tipo, String mensajeInvalido, String mensajeVencido) {
 		TokenUsuario t = tokenRepo.findByTokenAndTipo(token, tipo)
 				.orElseThrow(() -> new DatosInvalidosException(mensajeInvalido));
@@ -152,6 +163,14 @@ public class AuthService {
 		return t;
 	}
 
+	/**
+	 * Crea un token nuevo e invalida los anteriores del mismo tipo que sigan sin usar.
+	 *
+	 * @param u      usuario
+	 * @param tipo   tipo de token
+	 * @param expira fecha de vencimiento
+	 * @return valor del token
+	 */
 	private String crearToken(User u, TipoToken tipo, LocalDateTime expira) {
 		// Invalida los tokens anteriores del mismo tipo que sigan sin usar
 		tokenRepo.findByUsuarioAndTipoAndUsadoFalse(u, tipo).forEach(old -> {

@@ -162,15 +162,31 @@ public class AuthController {
 		private final String token;
 		private final String role;
 
+		/**
+		 * Crea la respuesta del inicio de sesión.
+		 *
+		 * @param token token JWT
+		 * @param role  rol del usuario
+		 */
 		public AuthResponse(String token, String role) {
 			this.token = token;
 			this.role = role;
 		}
 
+		/**
+		 * Token JWT que el frontend envía en la cabecera Authorization.
+		 *
+		 * @return token JWT
+		 */
 		public String getToken() {
 			return token;
 		}
 
+		/**
+		 * Rol del usuario, para que el frontend muestre la parte de cliente o de administrador.
+		 *
+		 * @return USER o ADMIN
+		 */
 		public String getRole() {
 			return role;
 		}

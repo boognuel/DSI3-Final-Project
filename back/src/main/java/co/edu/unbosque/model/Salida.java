@@ -9,6 +9,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Salida con amigos que organiza un usuario, con su presupuesto, sus invitaciones, los lugares
+ * propuestos y las rutas calculadas.
+ */
 @Entity
 @Table(name = "salida")
 @Getter

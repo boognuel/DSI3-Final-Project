@@ -18,6 +18,11 @@ import co.edu.unbosque.model.User;
 import co.edu.unbosque.repository.AuditoriaRepository;
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Registro y consulta de la auditoría. Además de los datos que recibe, toma de la petición HTTP la
+ * IP, el navegador y la ubicación que envía el frontend en las cabeceras {@value #CABECERA_LATITUD}
+ * y {@value #CABECERA_LONGITUD}.
+ */
 @Service
 public class AuditoriaService {
 	private static final Logger log = LoggerFactory.getLogger(AuditoriaService.class);
@@ -25,17 +30,49 @@ public class AuditoriaService {
 	@Autowired
 	private AuditoriaRepository repo;
 
+	/**
+	 * Registra una acción de un usuario autenticado.
+	 *
+	 * @param u         usuario que hizo la acción
+	 * @param accion    acción realizada
+	 * @param entidad   tipo de registro afectado, por ejemplo "Salida"
+	 * @param entidadId identificador del registro afectado
+	 * @param detalle   descripción adicional
+	 * @param resultado resultado de la acción
+	 */
 	public void registrar(User u, AccionAuditoria accion, String entidad, Long entidadId, String detalle,
 			ResultadoAuditoria resultado) {
 		guardar(u == null ? null : u.getId(), u == null ? null : u.getUsername(),
 				u == null ? null : u.getRole().name(), accion, entidad, entidadId, detalle, resultado);
 	}
 
+	/**
+	 * Registra una acción hecha sin sesión, como el registro, el login o la respuesta a una
+	 * invitación.
+	 *
+	 * @param username  nombre o correo de quien hizo la acción, si se conoce
+	 * @param accion    acción realizada
+	 * @param detalle   descripción adicional
+	 * @param resultado resultado de la acción
+	 */
 	public void registrarSinSesion(String username, AccionAuditoria accion, String detalle,
 			ResultadoAuditoria resultado) {
 		guardar(null, username, null, accion, null, null, detalle, resultado);
 	}
 
+	/**
+	 * Guarda un registro con los datos de la petición actual: IP, navegador y, si llegan válidas, la
+	 * latitud y longitud. Un fallo al guardar se registra en el log y no interrumpe la operación.
+	 *
+	 * @param usuarioId     identificador del usuario, o nulo
+	 * @param usuarioNombre nombre de usuario, o nulo
+	 * @param rol           rol del usuario, o nulo
+	 * @param accion        acción realizada
+	 * @param entidad       tipo de entidad afectada, o nulo
+	 * @param entidadId     identificador de la entidad, o nulo
+	 * @param detalle       descripción adicional, o nulo
+	 * @param resultado     resultado de la acción
+	 */
 	private void guardar(Long usuarioId, String usuarioNombre, String rol, AccionAuditoria accion, String entidad,
 			Long entidadId, String detalle, ResultadoAuditoria resultado) {
 		try {
@@ -62,6 +99,17 @@ public class AuditoriaService {
 		}
 	}
 
+	/**
+	 * Busca registros de auditoría, del más reciente al más antiguo.
+	 *
+	 * @param usuario parte del nombre de usuario; vacío o nulo para todos
+	 * @param accion  acción a filtrar; nula para todas
+	 * @param desde   fecha inicial
+	 * @param hasta   fecha final
+	 * @param page    número de página, desde 0
+	 * @param size    tamaño de página, entre 1 y 100
+	 * @return página de registros
+	 */
 	public Page<AuditoriaLog> buscar(String usuario, AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta,
 			int page, int size) {
 		PageRequest pr = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),
@@ -70,6 +118,13 @@ public class AuditoriaService {
 		return accion == null ? repo.buscar(u, desde, hasta, pr) : repo.buscarPorAccion(u, accion, desde, hasta, pr);
 	}
 
+	/**
+	 * Recorta un texto al largo máximo de su columna.
+	 *
+	 * @param s   texto, o nulo
+	 * @param max largo máximo
+	 * @return el texto recortado, o nulo
+	 */
 	private String recortar(String s, int max) {
 		return s == null ? null : (s.length() > max ? s.substring(0, max) : s);
 	}

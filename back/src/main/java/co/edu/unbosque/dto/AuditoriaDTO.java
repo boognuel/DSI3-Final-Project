@@ -5,6 +5,10 @@ import co.edu.unbosque.model.AccionAuditoria;
 import co.edu.unbosque.model.ResultadoAuditoria;
 import lombok.Data;
 
+/**
+ * Datos de un registro de auditoría que se envían al administrador. Si el registro tiene ubicación,
+ * incluye el enlace para verla en Google Maps.
+ */
 @Data
 public class AuditoriaDTO {
 	private Long id;
