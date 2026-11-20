@@ -21,7 +21,10 @@ import co.edu.unbosque.model.User;
 import co.edu.unbosque.service.AuditoriaService;
 import co.edu.unbosque.service.UserService;
 
-// Solo ADMIN (ver SecurityConfig)
+/**
+ * Gestión de usuarios por parte del administrador. Todos los endpoints requieren el rol ADMIN (ver
+ * SecurityConfig).
+ */
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -30,6 +33,13 @@ public class UserController {
 	@Autowired
 	private AuditoriaService auditoriaService;
 
+	/**
+	 * Crea un usuario con el correo ya verificado.
+	 *
+	 * @param dto  datos del usuario
+	 * @param auth administrador autenticado
+	 * @return 201 si el usuario se creó
+	 */
 	@PostMapping("/createjson")
 	public ResponseEntity<?> create(@RequestBody UserDTO dto, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
@@ -39,6 +49,11 @@ public class UserController {
 		return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado");
 	}
 
+	/**
+	 * Lista todos los usuarios.
+	 *
+	 * @return 200 con la lista, o 204 si no hay usuarios
+	 */
 	@GetMapping("/getall")
 	public ResponseEntity<List<UserDTO>> getAll() {
 		List<UserDTO> lista = userService.getAll();
@@ -46,21 +61,46 @@ public class UserController {
 				: ResponseEntity.ok(lista);
 	}
 
+	/**
+	 * Cuenta los usuarios registrados.
+	 *
+	 * @return 200 con el número de usuarios
+	 */
 	@GetMapping("/count")
 	public ResponseEntity<Long> count() {
 		return ResponseEntity.ok(userService.count());
 	}
 
+	/**
+	 * Indica si existe un usuario.
+	 *
+	 * @param id identificador del usuario
+	 * @return 200 con {@code true} si existe
+	 */
 	@GetMapping("/exists/{id}")
 	public ResponseEntity<Boolean> exists(@PathVariable Long id) {
 		return ResponseEntity.ok(userService.exist(id));
 	}
 
+	/**
+	 * Obtiene un usuario por su identificador.
+	 *
+	 * @param id identificador del usuario
+	 * @return 200 con los datos del usuario
+	 */
 	@GetMapping("/getbyid/{id}")
 	public ResponseEntity<UserDTO> getById(@PathVariable Long id) {
 		return ResponseEntity.ok(userService.getById(id));
 	}
 
+	/**
+	 * Actualiza los campos enviados de un usuario.
+	 *
+	 * @param id   identificador del usuario
+	 * @param dto  datos nuevos; los campos nulos no se cambian
+	 * @param auth administrador autenticado
+	 * @return 200 si el usuario se actualizó
+	 */
 	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserDTO dto, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
@@ -70,6 +110,13 @@ public class UserController {
 		return ResponseEntity.ok("Usuario actualizado");
 	}
 
+	/**
+	 * Elimina un usuario. El administrador no puede eliminar su propia cuenta.
+	 *
+	 * @param id   identificador del usuario
+	 * @param auth administrador autenticado
+	 * @return 200 si el usuario se eliminó
+	 */
 	@DeleteMapping("/deletebyid/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id, Authentication auth) {
 		User actual = (User) auth.getPrincipal();

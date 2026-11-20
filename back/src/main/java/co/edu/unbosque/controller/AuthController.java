@@ -26,6 +26,10 @@ import co.edu.unbosque.service.AuditoriaService;
 import co.edu.unbosque.service.AuthService;
 import jakarta.validation.Valid;
 
+/**
+ * Endpoints públicos de autenticación: inicio de sesión con JWT, registro, verificación del correo
+ * y recuperación de contraseña. No requieren token (ver SecurityConfig).
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -38,6 +42,14 @@ public class AuthController {
 	@Autowired
 	private AuditoriaService auditoriaService;
 
+	/**
+	 * Inicia sesión y devuelve el token JWT con el rol del usuario. Registra en la auditoría el
+	 * intento, exitoso o fallido.
+	 *
+	 * @param loginRequest usuario y contraseña
+	 * @return 200 con el token y el rol; 401 si las credenciales no son válidas; 403 si el correo no
+	 *         está verificado o la cuenta está deshabilitada
+	 */
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody UserDTO loginRequest) {
 		if (loginRequest.getUsername() == null || loginRequest.getPassword() == null) {
@@ -64,6 +76,12 @@ public class AuthController {
 		}
 	}
 
+	/**
+	 * Registra un usuario con rol USER y le envía el correo de verificación.
+	 *
+	 * @param dto datos del registro
+	 * @return 201 con un mensaje que indica si el correo de verificación se pudo enviar
+	 */
 	@PostMapping("/register")
 	public ResponseEntity<String> register(@Valid @RequestBody RegistroDTO dto) {
 		if (authService.registrar(dto)) {
@@ -78,6 +96,12 @@ public class AuthController {
 				.body("Usuario registrado, pero no pudimos enviar el correo de verificación. Solicita el reenvío.");
 	}
 
+	/**
+	 * Verifica el correo con el token del enlace enviado al registrarse.
+	 *
+	 * @param token token de verificación
+	 * @return 200 si el correo quedó verificado
+	 */
 	@GetMapping("/verify")
 	public ResponseEntity<String> verify(@RequestParam String token) {
 		authService.verificarEmail(token);
@@ -86,12 +110,26 @@ public class AuthController {
 		return ResponseEntity.ok("Correo verificado. Ya puedes iniciar sesión.");
 	}
 
+	/**
+	 * Reenvía el enlace de verificación. Responde lo mismo exista o no el correo, para no revelar qué
+	 * cuentas están registradas.
+	 *
+	 * @param dto correo de la cuenta
+	 * @return 200 con un mensaje genérico
+	 */
 	@PostMapping("/resend-verification")
 	public ResponseEntity<String> resend(@RequestBody PasswordResetDTO dto) {
 		authService.reenviarVerificacion(dto.getEmail());
 		return ResponseEntity.ok("Si el correo existe y no está verificado, te enviamos un nuevo enlace.");
 	}
 
+	/**
+	 * Envía el enlace de recuperación de contraseña. Responde lo mismo exista o no el correo, para no
+	 * revelar qué cuentas están registradas.
+	 *
+	 * @param dto correo de la cuenta
+	 * @return 200 con un mensaje genérico
+	 */
 	@PostMapping("/forgot")
 	public ResponseEntity<String> forgot(@RequestBody PasswordResetDTO dto) {
 		authService.solicitarRecuperacion(dto.getEmail());
@@ -100,6 +138,12 @@ public class AuthController {
 		return ResponseEntity.ok("Si el correo existe, te enviamos un enlace para cambiar la contraseña.");
 	}
 
+	/**
+	 * Cambia la contraseña con el token del enlace de recuperación.
+	 *
+	 * @param dto token y contraseña nueva
+	 * @return 200 si la contraseña se actualizó
+	 */
 	@PostMapping("/reset")
 	public ResponseEntity<String> reset(@RequestBody PasswordResetDTO dto) {
 		if (dto.getToken() == null || dto.getNuevaPassword() == null) {
@@ -111,6 +155,9 @@ public class AuthController {
 		return ResponseEntity.ok("Contraseña actualizada");
 	}
 
+	/**
+	 * Respuesta del inicio de sesión: token JWT y rol del usuario.
+	 */
 	private static class AuthResponse {
 		private final String token;
 		private final String role;

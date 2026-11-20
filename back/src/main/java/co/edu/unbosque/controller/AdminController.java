@@ -29,7 +29,10 @@ import co.edu.unbosque.model.User;
 import co.edu.unbosque.service.AuditoriaService;
 import co.edu.unbosque.service.ReporteService;
 
-// Solo ADMIN (ver SecurityConfig)
+/**
+ * Funciones del administrador: consulta de la auditoría y descarga del reporte. Todos los
+ * endpoints requieren el rol ADMIN (ver SecurityConfig).
+ */
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -40,7 +43,18 @@ public class AdminController {
 	@Autowired
 	private ModelMapper modelMapper;
 
-	// Fechas en formato yyyy-MM-dd. Sin fechas, devuelve todo el historial.
+	/**
+	 * Consulta la auditoría con filtros y paginación, del registro más reciente al más antiguo.
+	 *
+	 * @param usuario parte del nombre de usuario
+	 * @param accion  acción a filtrar
+	 * @param desde   fecha inicial (yyyy-MM-dd); sin ella, desde el inicio del historial
+	 * @param hasta   fecha final (yyyy-MM-dd); sin ella, hasta hoy
+	 * @param page    número de página, desde 0
+	 * @param size    tamaño de página, máximo 100
+	 * @param auth    administrador autenticado
+	 * @return 200 con los registros y los datos de la paginación
+	 */
 	@GetMapping("/auditoria")
 	public ResponseEntity<?> auditoria(@RequestParam(required = false) String usuario,
 			@RequestParam(required = false) AccionAuditoria accion,
@@ -63,6 +77,14 @@ public class AdminController {
 		return ResponseEntity.ok(cuerpo);
 	}
 
+	/**
+	 * Descarga el reporte en Excel del periodo indicado.
+	 *
+	 * @param desde fecha inicial (yyyy-MM-dd)
+	 * @param hasta fecha final (yyyy-MM-dd)
+	 * @param auth  administrador autenticado
+	 * @return 200 con el archivo .xlsx, o 500 si no se pudo generar
+	 */
 	@GetMapping("/reporte")
 	public ResponseEntity<?> reporte(
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
@@ -85,10 +107,22 @@ public class AdminController {
 		}
 	}
 
+	/**
+	 * Convierte la fecha inicial del filtro en el inicio de ese día.
+	 *
+	 * @param d fecha inicial, o nula
+	 * @return inicio del día, o el 1 de enero de 2000 si no hay fecha
+	 */
 	private LocalDateTime inicio(LocalDate d) {
 		return d == null ? LocalDateTime.of(2000, 1, 1, 0, 0) : d.atStartOfDay();
 	}
 
+	/**
+	 * Convierte la fecha final del filtro en el final de ese día.
+	 *
+	 * @param d fecha final, o nula
+	 * @return final del día, o mañana si no hay fecha
+	 */
 	private LocalDateTime fin(LocalDate d) {
 		return d == null ? LocalDateTime.now().plusDays(1) : d.atTime(LocalTime.MAX);
 	}
