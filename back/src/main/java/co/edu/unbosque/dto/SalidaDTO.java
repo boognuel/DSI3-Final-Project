@@ -8,6 +8,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * Datos de una salida con amigos: título, presupuesto, organizador, fecha y estado.
+ */
 @Data
 public class SalidaDTO {
 	private Long id;
