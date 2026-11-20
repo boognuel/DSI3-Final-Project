@@ -63,6 +63,12 @@ public class SecurityConfig {
 		return http.build();
 	}
 
+	/**
+	 * Permite las peticiones del frontend y expone Content-Disposition para la descarga del reporte.
+	 *
+	 * @param origin origen permitido (app.cors.allowed-origin)
+	 * @return configuración CORS
+	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.allowed-origin}") String origin) {
 		CorsConfiguration c = new CorsConfiguration();
