@@ -47,6 +47,15 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 			@Param("categoriaIds") Collection<Long> categoriaIds);
 
 	/**
+	 * Cuenta los lugares de cada categoría, incluidas las categorías sin lugares.
+	 *
+	 * @return filas con el nombre de la categoría y su número de lugares, en orden alfabético
+	 */
+	@Query("select c.nombre, count(l) from Categoria c left join Lugar l on l.categoria = c "
+			+ "group by c.nombre order by c.nombre")
+	List<Object[]> contarPorCategoria();
+
+	/**
 	 * Indica si hay lugares en la zona.
 	 *
 	 * @param zonaId identificador de la zona

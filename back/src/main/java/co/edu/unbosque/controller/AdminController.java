@@ -22,15 +22,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import co.edu.unbosque.dto.AuditoriaDTO;
+import co.edu.unbosque.dto.EstadisticasDTO;
 import co.edu.unbosque.model.AccionAuditoria;
 import co.edu.unbosque.model.AuditoriaLog;
 import co.edu.unbosque.model.ResultadoAuditoria;
 import co.edu.unbosque.model.User;
 import co.edu.unbosque.service.AuditoriaService;
+import co.edu.unbosque.service.EstadisticaService;
 import co.edu.unbosque.service.ReporteService;
 
 /**
- * Funciones del administrador: consulta de la auditoría y descarga del reporte. Todos los
+ * Funciones del administrador: consulta de la auditoría, descarga del reporte y estadísticas. Todos los
  * endpoints requieren el rol ADMIN (ver SecurityConfig).
  */
 @RestController
@@ -40,6 +42,8 @@ public class AdminController {
 	private AuditoriaService auditoriaService;
 	@Autowired
 	private ReporteService reporteService;
+	@Autowired
+	private EstadisticaService estadisticaService;
 	@Autowired
 	private ModelMapper modelMapper;
 
@@ -105,6 +109,21 @@ public class AdminController {
 					"Error al generar el reporte", ResultadoAuditoria.FALLO);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No se pudo generar el reporte");
 		}
+	}
+
+	/**
+	 * Datos para las gráficas del módulo de estadísticas: usuarios registrados por mes, lugares por
+	 * categoría e invitaciones por estado.
+	 *
+	 * @param auth administrador autenticado
+	 * @return 200 con las series de las gráficas
+	 */
+	@GetMapping("/estadisticas")
+	public ResponseEntity<EstadisticasDTO> estadisticas(Authentication auth) {
+		EstadisticasDTO datos = estadisticaService.calcular();
+		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.CONSULTAR_ESTADISTICAS, null, null,
+				"Consulta de estadísticas", ResultadoAuditoria.EXITO);
+		return ResponseEntity.ok(datos);
 	}
 
 	/**
