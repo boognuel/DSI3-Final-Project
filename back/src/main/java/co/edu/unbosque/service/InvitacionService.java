@@ -133,18 +133,36 @@ public class InvitacionService {
 				"Invitación " + inv.getId() + " de la salida " + inv.getSalida().getId(), ResultadoAuditoria.EXITO);
 	}
 
+	/**
+	 * Lista las invitaciones de una salida con su estado.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @return invitaciones de la salida
+	 */
 	public List<InvitacionDTO> getBySalida(Long salidaId) {
 		List<InvitacionDTO> lista = new ArrayList<>();
 		invitacionRepo.findBySalidaId(salidaId).forEach(i -> lista.add(toDTO(i)));
 		return lista;
 	}
 
+	/**
+	 * Lista las invitaciones que llegaron al correo del usuario.
+	 *
+	 * @param u usuario autenticado
+	 * @return invitaciones recibidas
+	 */
 	public List<InvitacionDTO> getMisInvitaciones(User u) {
 		List<InvitacionDTO> lista = new ArrayList<>();
 		invitacionRepo.findByEmailInvitadoIgnoreCase(u.getEmail()).forEach(i -> lista.add(toDTO(i)));
 		return lista;
 	}
 
+	/**
+	 * Convierte la entidad en DTO, con el título de la salida.
+	 *
+	 * @param i invitación
+	 * @return datos de la invitación
+	 */
 	private InvitacionDTO toDTO(Invitacion i) {
 		InvitacionDTO d = new InvitacionDTO();
 		d.setId(i.getId());

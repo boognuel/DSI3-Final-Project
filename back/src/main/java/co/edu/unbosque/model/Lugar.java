@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Plan que crea el equipo (por ejemplo una panadería o una discoteca), con su ubicación, su
+ * categoría, su zona y su tarifa de referencia por persona.
+ */
 @Entity
 @Table(name = "lugar", uniqueConstraints = @UniqueConstraint(columnNames = { "osmTipo", "osmId" }))
 @Getter

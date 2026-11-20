@@ -9,7 +9,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 // Entrada: salidaId, lugarId, origenLatitud, origenLongitud, modoTransporte.
-// Salida: además distancia, duración y la geometría del trayecto (GeoJSON) para dibujarla en Leaflet.
+/**
+ * Ruta hacia un lugar de una salida. En la petición se envían la salida, el lugar, la ubicación del
+ * usuario y el modo de transporte; en la respuesta llegan además la distancia, la duración, la línea
+ * del camino en GeoJSON para dibujarla en el mapa y las indicaciones en español.
+ */
 @Data
 public class RutaDTO {
 	@NotNull

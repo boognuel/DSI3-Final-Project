@@ -3,16 +3,34 @@ package co.edu.unbosque.service;
 import co.edu.unbosque.model.Invitacion;
 import co.edu.unbosque.model.User;
 
-// Contrato para el envío de correos. La implementación (Java Mail) la hace quien trabaja las integraciones:
-// debe ser una clase @Service que implemente esta interfaz. Cada método devuelve true si el correo salió.
+/**
+ * Contrato para el envío de correos. Cada método devuelve true si el correo salió.
+ */
 public interface CorreoService {
 
-	// Enlace sugerido: {app.base-url}/auth/verify?token={token}
+	/**
+	 * Envía el enlace para verificar el correo de una cuenta nueva.
+	 *
+	 * @param usuario usuario registrado
+	 * @param token   token de verificación
+	 * @return {@code true} si el correo se envió
+	 */
 	boolean enviarVerificacion(User usuario, String token);
 
-	// Enlace sugerido: {app.frontend-url}/reset-password?token={token}
+	/**
+	 * Envía el enlace para cambiar la contraseña.
+	 *
+	 * @param usuario usuario que pidió la recuperación
+	 * @param token   token de recuperación
+	 * @return {@code true} si el correo se envió
+	 */
 	boolean enviarRecuperacion(User usuario, String token);
 
-	// Enlace sugerido: {app.frontend-url}/invitacion?token={invitacion.getToken()}
+	/**
+	 * Envía la invitación a una salida.
+	 *
+	 * @param invitacion invitación con la salida y el correo del invitado
+	 * @return {@code true} si el correo se envió
+	 */
 	boolean enviarInvitacion(Invitacion invitacion);
 }

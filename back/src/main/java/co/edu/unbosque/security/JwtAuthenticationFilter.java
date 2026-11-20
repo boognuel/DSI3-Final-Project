@@ -13,16 +13,36 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Filtro que lee el token JWT de la cabecera Authorization y, si es válido, deja al usuario
+ * autenticado para esa petición.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final JwtUtil jwtUtil;
 	private final UserDetailsService userDetailsService;
 
+	/**
+	 * Crea el filtro.
+	 *
+	 * @param jwtUtil            utilidades para leer y validar el token
+	 * @param userDetailsService servicio que carga el usuario
+	 */
 	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
 		this.jwtUtil = jwtUtil;
 		this.userDetailsService = userDetailsService;
 	}
 
+	/**
+	 * Autentica la petición si trae un token válido de una cuenta habilitada. Si el token no es
+	 * válido, la petición sigue sin autenticar y Spring Security decide si la rechaza.
+	 *
+	 * @param request     petición HTTP
+	 * @param response    respuesta HTTP
+	 * @param filterChain cadena de filtros
+	 * @throws ServletException si falla un filtro siguiente
+	 * @throws IOException      si falla la lectura o escritura
+	 */
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
