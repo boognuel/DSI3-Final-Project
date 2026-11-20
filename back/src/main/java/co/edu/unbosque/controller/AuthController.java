@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -139,12 +140,13 @@ public class AuthController {
 	}
 
 	/**
-	 * Cambia la contraseña con el token del enlace de recuperación.
+	 * Cambia la contraseña con el token del enlace de recuperación. Lo llama el frontend desde la
+	 * página a la que apunta el enlace del correo.
 	 *
 	 * @param dto token y contraseña nueva
 	 * @return 200 si la contraseña se actualizó
 	 */
-	@PostMapping("/reset")
+	@PutMapping("/reset")
 	public ResponseEntity<String> reset(@RequestBody PasswordResetDTO dto) {
 		if (dto.getToken() == null || dto.getNuevaPassword() == null) {
 			throw new DatosInvalidosException("Token y nueva contraseña son obligatorios");
