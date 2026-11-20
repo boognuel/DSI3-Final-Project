@@ -19,6 +19,9 @@ import co.edu.unbosque.service.InvitacionService;
 import co.edu.unbosque.service.SalidaService;
 import jakarta.validation.Valid;
 
+/**
+ * Invitaciones a las salidas: envío por correo, respuesta del invitado y consulta.
+ */
 @RestController
 @RequestMapping("/invitacion")
 public class InvitacionController {
@@ -27,20 +30,41 @@ public class InvitacionController {
 	@Autowired
 	private SalidaService salidaService;
 
+	/**
+	 * Invita a una persona a la salida enviándole un correo. Solo el organizador.
+	 *
+	 * @param dto  salida y correo del invitado
+	 * @param auth organizador autenticado
+	 * @return 201 si la invitación se envió
+	 */
 	@PostMapping("/enviar")
 	public ResponseEntity<String> enviar(@Valid @RequestBody InvitacionDTO dto, Authentication auth) {
 		invitacionService.invitar(dto, (User) auth.getPrincipal());
 		return ResponseEntity.status(HttpStatus.CREATED).body("Invitación enviada");
 	}
 
-	// Lo llama el frontend desde la página a la que apunta el enlace del correo (no requiere sesión)
+	/**
+	 * Registra la respuesta del invitado. Lo llama el frontend desde la página a la que apunta el
+	 * enlace del correo; no requiere sesión porque el token prueba el acceso al correo.
+	 *
+	 * @param token   token de la invitación
+	 * @param aceptar {@code true} para aceptar, {@code false} para rechazar
+	 * @return 200 con la respuesta registrada
+	 */
 	@PostMapping("/responder")
 	public ResponseEntity<String> responder(@RequestParam String token, @RequestParam boolean aceptar) {
 		invitacionService.responder(token, aceptar);
 		return ResponseEntity.ok(aceptar ? "Invitación aceptada" : "Invitación rechazada");
 	}
 
-	// El organizador ve quién aceptó, rechazó o sigue pendiente
+	/**
+	 * Lista las invitaciones de una salida para ver quién aceptó, rechazó o sigue pendiente. Solo el
+	 * organizador o un administrador.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @param auth     usuario autenticado
+	 * @return 200 con la lista de invitaciones
+	 */
 	@GetMapping("/salida/{salidaId}")
 	public ResponseEntity<List<InvitacionDTO>> porSalida(@PathVariable Long salidaId, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
@@ -51,6 +75,12 @@ public class InvitacionController {
 		return ResponseEntity.ok(invitacionService.getBySalida(salidaId));
 	}
 
+	/**
+	 * Lista las invitaciones recibidas en el correo del usuario autenticado.
+	 *
+	 * @param auth usuario autenticado
+	 * @return 200 con la lista de invitaciones
+	 */
 	@GetMapping("/mis-invitaciones")
 	public ResponseEntity<List<InvitacionDTO>> misInvitaciones(Authentication auth) {
 		return ResponseEntity.ok(invitacionService.getMisInvitaciones((User) auth.getPrincipal()));
