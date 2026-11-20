@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * Datos para crear una cuenta: nombre de usuario, correo y contraseña.
+ */
 @Data
 public class RegistroDTO {
 	@NotBlank

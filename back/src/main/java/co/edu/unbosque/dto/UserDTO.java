@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import co.edu.unbosque.model.User;
 import lombok.Data;
 
+/**
+ * Datos de un usuario. La contraseña solo se recibe al crear o editar y nunca se devuelve.
+ */
 @Data
 public class UserDTO {
 	private Long id;
