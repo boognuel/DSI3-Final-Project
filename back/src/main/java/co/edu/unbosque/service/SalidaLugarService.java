@@ -2,10 +2,12 @@ package co.edu.unbosque.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import co.edu.unbosque.dto.SalidaLugarDTO;
+import co.edu.unbosque.exception.ConflictoException;
+import co.edu.unbosque.exception.DatosInvalidosException;
+import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.model.Lugar;
 import co.edu.unbosque.model.Salida;
 import co.edu.unbosque.model.SalidaLugar;
@@ -13,6 +15,9 @@ import co.edu.unbosque.repository.LugarRepository;
 import co.edu.unbosque.repository.SalidaLugarRepository;
 import co.edu.unbosque.repository.SalidaRepository;
 
+/**
+ * Gestión de los lugares que se proponen como opciones de una salida.
+ */
 @Service
 public class SalidaLugarService {
 	@Autowired
@@ -22,31 +27,37 @@ public class SalidaLugarService {
 	@Autowired
 	private LugarRepository lugarRepo;
 
-	// 0 = ok, 1 = salida no existe, 2 = lugar no existe, 3 = ya agregado, 4 = el lugar supera el presupuesto
-	public int agregar(Long salidaId, Long lugarId) {
-		Optional<Salida> s = salidaRepo.findById(salidaId);
-		if (s.isEmpty()) {
-			return 1;
+	/**
+	 * Agrega un lugar al final de la lista de opciones de la salida.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @param lugarId  identificador del lugar
+	 * @throws DatosInvalidosException      si no se envía el lugar o su costo supera el presupuesto
+	 *                                      de la salida
+	 * @throws RecursoNoEncontradoException si la salida o el lugar no existen
+	 * @throws ConflictoException           si el lugar ya está en la salida
+	 */
+	public void agregar(Long salidaId, Long lugarId) {
+		if (lugarId == null) {
+			throw new DatosInvalidosException("lugarId es obligatorio");
 		}
-		Optional<Lugar> l = lugarRepo.findById(lugarId);
-		if (l.isEmpty()) {
-			return 2;
-		}
+		Salida salida = salidaRepo.findById(salidaId)
+				.orElseThrow(() -> new RecursoNoEncontradoException("Salida no encontrada"));
+		Lugar lugar = lugarRepo.findById(lugarId)
+				.orElseThrow(() -> new RecursoNoEncontradoException("Lugar no encontrado"));
 		if (salidaLugarRepo.findBySalidaIdAndLugarId(salidaId, lugarId).isPresent()) {
-			return 3;
+			throw new ConflictoException("El lugar ya está en la salida");
 		}
-		Lugar lugar = l.get();
-		if (lugar.getCostoEstimado() != null && lugar.getCostoEstimado().compareTo(s.get().getPresupuesto()) > 0) {
-			return 4;
+		if (lugar.getCostoEstimado() != null && lugar.getCostoEstimado().compareTo(salida.getPresupuesto()) > 0) {
+			throw new DatosInvalidosException("El lugar supera el presupuesto de la salida");
 		}
 		SalidaLugar sl = new SalidaLugar();
-		sl.setSalida(s.get());
+		sl.setSalida(salida);
 		sl.setLugar(lugar);
 		sl.setOrden(salidaLugarRepo.findBySalidaId(salidaId).size() + 1);
 		sl.setSeleccionado(false);
 		sl.setCostoEstimadoPorPersona(lugar.getCostoEstimado());
 		salidaLugarRepo.save(sl);
-		return 0;
 	}
 
 	public List<SalidaLugarDTO> listar(Long salidaId) {
@@ -56,16 +67,21 @@ public class SalidaLugarService {
 		return lista;
 	}
 
-	// Marca un lugar como el destino elegido y desmarca los demás. 0 = ok, 1 = ese lugar no está en la salida
-	public int seleccionar(Long salidaId, Long lugarId) {
+	/**
+	 * Marca un lugar como el destino elegido de la salida y desmarca los demás.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @param lugarId  identificador del lugar elegido
+	 * @throws RecursoNoEncontradoException si el lugar no está en la salida
+	 */
+	public void seleccionar(Long salidaId, Long lugarId) {
 		List<SalidaLugar> todos = salidaLugarRepo.findBySalidaId(salidaId);
 		boolean existe = todos.stream().anyMatch(sl -> sl.getLugar().getId().equals(lugarId));
 		if (!existe) {
-			return 1;
+			throw new RecursoNoEncontradoException("Ese lugar no está en la salida");
 		}
 		todos.forEach(sl -> sl.setSeleccionado(sl.getLugar().getId().equals(lugarId)));
 		salidaLugarRepo.saveAll(todos);
-		return 0;
 	}
 
 	private SalidaLugarDTO toDTO(SalidaLugar sl) {

@@ -2,9 +2,10 @@ package co.edu.unbosque.exception;
 
 /**
  * Excepción que se lanza cuando una contraseña no cumple la política de seguridad: mínimo 8
- * caracteres, con al menos una minúscula, una mayúscula, un número y un símbolo.
+ * caracteres, con al menos una minúscula, una mayúscula, un número y un símbolo. Responde 400
+ * (Bad Request).
  */
-public class PasswordNotValidException extends Exception {
+public class PasswordNotValidException extends DatosInvalidosException {
 	private static final long serialVersionUID = -1290628531913444044L;
 
 	/**

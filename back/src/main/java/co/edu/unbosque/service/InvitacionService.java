@@ -3,12 +3,17 @@ package co.edu.unbosque.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import co.edu.unbosque.dto.InvitacionDTO;
+import co.edu.unbosque.exception.AccesoDenegadoException;
+import co.edu.unbosque.exception.ConflictoException;
+import co.edu.unbosque.exception.DatosInvalidosException;
+import co.edu.unbosque.exception.RecursoExpiradoException;
+import co.edu.unbosque.exception.RecursoNoEncontradoException;
+import co.edu.unbosque.exception.ServicioExternoException;
 import co.edu.unbosque.model.AccionAuditoria;
 import co.edu.unbosque.model.EstadoInvitacion;
 import co.edu.unbosque.model.EstadoSalida;
@@ -20,8 +25,13 @@ import co.edu.unbosque.repository.InvitacionRepository;
 import co.edu.unbosque.repository.SalidaRepository;
 import co.edu.unbosque.repository.UserRepository;
 
+/**
+ * Envío de invitaciones a las salidas y registro de las respuestas de los invitados.
+ */
 @Service
 public class InvitacionService {
+	private static final String INVITACION_VIGENTE = "Esa persona ya tiene una invitación vigente";
+
 	@Autowired
 	private InvitacionRepository invitacionRepo;
 	@Autowired
@@ -36,32 +46,39 @@ public class InvitacionService {
 	@Value("${app.invitacion.dias-validez}")
 	private long diasValidez;
 
-	// 0 = ok, 1 = salida no existe, 2 = no es el organizador, 3 = salida cancelada o realizada,
-	// 4 = ya invitado, 5 = falló el envío del correo, 6 = se invitó a sí mismo
-	public int invitar(InvitacionDTO data, User organizador) {
-		Optional<Salida> opt = salidaRepo.findById(data.getSalidaId());
-		if (opt.isEmpty()) {
-			return 1;
-		}
-		Salida salida = opt.get();
+	/**
+	 * Crea una invitación a la salida y la envía por correo.
+	 *
+	 * @param data        salida y correo del invitado
+	 * @param organizador usuario que invita
+	 * @throws RecursoNoEncontradoException si la salida no existe
+	 * @throws AccesoDenegadoException      si quien invita no organiza la salida
+	 * @throws DatosInvalidosException      si la salida está cancelada o realizada, o el
+	 *                                      organizador se invita a sí mismo
+	 * @throws ConflictoException           si el invitado ya aceptó o tiene una invitación vigente
+	 * @throws ServicioExternoException     si no se pudo enviar el correo
+	 */
+	public void invitar(InvitacionDTO data, User organizador) {
+		Salida salida = salidaRepo.findById(data.getSalidaId())
+				.orElseThrow(() -> new RecursoNoEncontradoException("Salida no encontrada"));
 		if (!salida.getOrganizador().getId().equals(organizador.getId())) {
-			return 2;
+			throw new AccesoDenegadoException("Solo el organizador puede invitar");
 		}
 		if (salida.getEstado() == EstadoSalida.CANCELADA || salida.getEstado() == EstadoSalida.REALIZADA) {
-			return 3;
+			throw new DatosInvalidosException("La salida está cancelada o ya se realizó");
 		}
 		String email = data.getEmailInvitado().trim().toLowerCase();
 		if (email.equalsIgnoreCase(organizador.getEmail())) {
-			return 6;
+			throw new DatosInvalidosException("No puedes invitarte a ti mismo");
 		}
 		LocalDateTime ahora = LocalDateTime.now();
 		for (Invitacion i : invitacionRepo.findBySalidaIdAndEmailInvitadoIgnoreCase(salida.getId(), email)) {
 			if (i.getEstado() == EstadoInvitacion.ACEPTADA) {
-				return 4;
+				throw new ConflictoException(INVITACION_VIGENTE);
 			}
 			if (i.getEstado() == EstadoInvitacion.PENDIENTE) {
 				if (i.getFechaExpiracion().isAfter(ahora)) {
-					return 4;
+					throw new ConflictoException(INVITACION_VIGENTE);
 				}
 				i.setEstado(EstadoInvitacion.EXPIRADA);
 				invitacionRepo.save(i);
@@ -80,29 +97,33 @@ public class InvitacionService {
 			invitacionRepo.delete(inv);
 			auditoriaService.registrar(organizador, AccionAuditoria.ENVIAR_INVITACION, "Salida", salida.getId(),
 					"Falló el envío del correo a " + email, ResultadoAuditoria.FALLO);
-			return 5;
+			throw new ServicioExternoException("No se pudo enviar el correo");
 		}
 		auditoriaService.registrar(organizador, AccionAuditoria.ENVIAR_INVITACION, "Invitacion", inv.getId(),
 				"Invitado: " + email, ResultadoAuditoria.EXITO);
-		return 0;
 	}
 
-	// Lo llama el invitado desde el enlace del correo (el token es la prueba de que tiene acceso al correo).
-	// 0 = ok, 1 = token inválido, 2 = ya respondida o vencida, 3 = acaba de vencer
-	public int responder(String token, boolean aceptar) {
-		Optional<Invitacion> opt = invitacionRepo.findByToken(token);
-		if (opt.isEmpty()) {
-			return 1;
-		}
-		Invitacion inv = opt.get();
+	/**
+	 * Registra la respuesta del invitado. Lo llama el invitado desde el enlace del correo; el token
+	 * es la prueba de que tiene acceso a ese correo.
+	 *
+	 * @param token   token de la invitación
+	 * @param aceptar {@code true} para aceptar, {@code false} para rechazar
+	 * @throws RecursoNoEncontradoException si el token no corresponde a ninguna invitación
+	 * @throws ConflictoException           si la invitación ya fue respondida o había vencido
+	 * @throws RecursoExpiradoException     si la invitación venció; queda marcada como expirada
+	 */
+	public void responder(String token, boolean aceptar) {
+		Invitacion inv = invitacionRepo.findByToken(token)
+				.orElseThrow(() -> new RecursoNoEncontradoException("Invitación no encontrada"));
 		if (inv.getEstado() != EstadoInvitacion.PENDIENTE) {
-			return 2;
+			throw new ConflictoException("Esta invitación ya fue respondida");
 		}
 		LocalDateTime ahora = LocalDateTime.now();
 		if (inv.getFechaExpiracion().isBefore(ahora)) {
 			inv.setEstado(EstadoInvitacion.EXPIRADA);
 			invitacionRepo.save(inv);
-			return 3;
+			throw new RecursoExpiradoException("La invitación venció");
 		}
 		inv.setEstado(aceptar ? EstadoInvitacion.ACEPTADA : EstadoInvitacion.RECHAZADA);
 		inv.setFechaRespuesta(ahora);
@@ -110,7 +131,6 @@ public class InvitacionService {
 		auditoriaService.registrarSinSesion(inv.getEmailInvitado(),
 				aceptar ? AccionAuditoria.ACEPTAR_INVITACION : AccionAuditoria.RECHAZAR_INVITACION,
 				"Invitación " + inv.getId() + " de la salida " + inv.getSalida().getId(), ResultadoAuditoria.EXITO);
-		return 0;
 	}
 
 	public List<InvitacionDTO> getBySalida(Long salidaId) {

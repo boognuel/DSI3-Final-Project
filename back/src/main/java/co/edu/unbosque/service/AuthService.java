@@ -9,7 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import co.edu.unbosque.dto.RegistroDTO;
-import co.edu.unbosque.exception.PasswordNotValidException;
+import co.edu.unbosque.exception.ConflictoException;
+import co.edu.unbosque.exception.DatosInvalidosException;
+import co.edu.unbosque.exception.RecursoExpiradoException;
 import co.edu.unbosque.model.TipoToken;
 import co.edu.unbosque.model.TokenUsuario;
 import co.edu.unbosque.model.User;
@@ -17,6 +19,9 @@ import co.edu.unbosque.repository.TokenUsuarioRepository;
 import co.edu.unbosque.repository.UserRepository;
 import co.edu.unbosque.util.PasswordValidator;
 
+/**
+ * Registro público, verificación del correo y recuperación de contraseña.
+ */
 @Service
 public class AuthService {
 	@Autowired
@@ -33,14 +38,22 @@ public class AuthService {
 	@Value("${app.token.minutos-recuperacion}")
 	private long minutosRecuperacion;
 
-	// 0 = ok, 1 = username en uso, 2 = correo en uso, 3 = creado pero falló el envío del correo
-	public int registrar(RegistroDTO dto) throws PasswordNotValidException {
+	/**
+	 * Registra un usuario con rol USER y le envía el correo de verificación.
+	 *
+	 * @param dto datos del registro
+	 * @return {@code true} si el correo de verificación se envió; {@code false} si la cuenta se
+	 *         creó pero el correo falló
+	 * @throws ConflictoException      si el nombre de usuario o el correo ya están registrados
+	 * @throws DatosInvalidosException si la contraseña no cumple la política
+	 */
+	public boolean registrar(RegistroDTO dto) {
 		if (userRepo.existsByUsername(dto.getUsername())) {
-			return 1;
+			throw new ConflictoException("El nombre de usuario ya existe");
 		}
 		String email = dto.getEmail().trim().toLowerCase();
 		if (userRepo.existsByEmail(email)) {
-			return 2;
+			throw new ConflictoException("El correo ya está registrado");
 		}
 		PasswordValidator.validar(dto.getPassword());
 		User u = new User();
@@ -51,13 +64,18 @@ public class AuthService {
 		u.setEmailVerificado(false);
 		userRepo.save(u);
 		String token = crearToken(u, TipoToken.VERIFICACION_EMAIL, LocalDateTime.now().plusHours(horasVerificacion));
-		return correoService.enviarVerificacion(u, token) ? 0 : 3;
+		return correoService.enviarVerificacion(u, token);
 	}
 
-	// Siempre 0 para no revelar si el correo existe
-	public int reenviarVerificacion(String email) {
+	/**
+	 * Envía un nuevo enlace de verificación si el correo existe y no está verificado. No informa
+	 * si el correo existe, para no revelar qué cuentas están registradas.
+	 *
+	 * @param email correo de la cuenta
+	 */
+	public void reenviarVerificacion(String email) {
 		if (email == null) {
-			return 0;
+			return;
 		}
 		Optional<User> opt = userRepo.findByEmail(email.trim().toLowerCase());
 		if (opt.isPresent() && !opt.get().isEmailVerificado()) {
@@ -66,32 +84,35 @@ public class AuthService {
 					LocalDateTime.now().plusHours(horasVerificacion));
 			correoService.enviarVerificacion(u, token);
 		}
-		return 0;
 	}
 
-	// 0 = ok, 1 = token inválido, 2 = vencido o ya usado
+	/**
+	 * Marca el correo como verificado usando el token del enlace.
+	 *
+	 * @param token token recibido por correo
+	 * @throws DatosInvalidosException  si el token no existe
+	 * @throws RecursoExpiradoException si el token venció o ya fue usado
+	 */
 	@Transactional
-	public int verificarEmail(String token) {
-		Optional<TokenUsuario> opt = tokenRepo.findByTokenAndTipo(token, TipoToken.VERIFICACION_EMAIL);
-		if (opt.isEmpty()) {
-			return 1;
-		}
-		TokenUsuario t = opt.get();
-		if (t.isUsado() || t.getFechaExpiracion().isBefore(LocalDateTime.now())) {
-			return 2;
-		}
+	public void verificarEmail(String token) {
+		TokenUsuario t = validarToken(token, TipoToken.VERIFICACION_EMAIL, "Enlace de verificación inválido",
+				"El enlace venció o ya fue usado. Solicita uno nuevo.");
 		User u = t.getUsuario();
 		u.setEmailVerificado(true);
 		userRepo.save(u);
 		t.setUsado(true);
 		tokenRepo.save(t);
-		return 0;
 	}
 
-	// Siempre 0 para no revelar si el correo existe
-	public int solicitarRecuperacion(String email) {
+	/**
+	 * Envía el enlace de recuperación si el correo pertenece a una cuenta activa. No informa si el
+	 * correo existe, para no revelar qué cuentas están registradas.
+	 *
+	 * @param email correo de la cuenta
+	 */
+	public void solicitarRecuperacion(String email) {
 		if (email == null) {
-			return 0;
+			return;
 		}
 		Optional<User> opt = userRepo.findByEmail(email.trim().toLowerCase());
 		if (opt.isPresent() && opt.get().isEnabled()) {
@@ -100,27 +121,35 @@ public class AuthService {
 					LocalDateTime.now().plusMinutes(minutosRecuperacion));
 			correoService.enviarRecuperacion(u, token);
 		}
-		return 0;
 	}
 
-	// 0 = ok, 1 = token inválido, 2 = vencido o ya usado
+	/**
+	 * Cambia la contraseña usando el token del enlace de recuperación.
+	 *
+	 * @param token         token recibido por correo
+	 * @param nuevaPassword contraseña nueva
+	 * @throws DatosInvalidosException  si el token no existe o la contraseña no cumple la política
+	 * @throws RecursoExpiradoException si el token venció o ya fue usado
+	 */
 	@Transactional
-	public int restablecerPassword(String token, String nuevaPassword) throws PasswordNotValidException {
-		Optional<TokenUsuario> opt = tokenRepo.findByTokenAndTipo(token, TipoToken.RECUPERACION_PASSWORD);
-		if (opt.isEmpty()) {
-			return 1;
-		}
-		TokenUsuario t = opt.get();
-		if (t.isUsado() || t.getFechaExpiracion().isBefore(LocalDateTime.now())) {
-			return 2;
-		}
+	public void restablecerPassword(String token, String nuevaPassword) {
+		TokenUsuario t = validarToken(token, TipoToken.RECUPERACION_PASSWORD, "Enlace de recuperación inválido",
+				"El enlace venció o ya fue usado");
 		PasswordValidator.validar(nuevaPassword);
 		User u = t.getUsuario();
 		u.setPassword(passwordEncoder.encode(nuevaPassword));
 		userRepo.save(u);
 		t.setUsado(true);
 		tokenRepo.save(t);
-		return 0;
+	}
+
+	private TokenUsuario validarToken(String token, TipoToken tipo, String mensajeInvalido, String mensajeVencido) {
+		TokenUsuario t = tokenRepo.findByTokenAndTipo(token, tipo)
+				.orElseThrow(() -> new DatosInvalidosException(mensajeInvalido));
+		if (t.isUsado() || t.getFechaExpiracion().isBefore(LocalDateTime.now())) {
+			throw new RecursoExpiradoException(mensajeVencido);
+		}
+		return t;
 	}
 
 	private String crearToken(User u, TipoToken tipo, LocalDateTime expira) {

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import co.edu.unbosque.dto.UserDTO;
+import co.edu.unbosque.exception.DatosInvalidosException;
 import co.edu.unbosque.model.AccionAuditoria;
 import co.edu.unbosque.model.ResultadoAuditoria;
 import co.edu.unbosque.model.User;
@@ -32,21 +33,10 @@ public class UserController {
 	@PostMapping("/createjson")
 	public ResponseEntity<?> create(@RequestBody UserDTO dto, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
-		int r = userService.create(dto);
-		switch (r) {
-		case 0:
-			auditoriaService.registrar(actual, AccionAuditoria.GESTION_USUARIO, "User", null,
-					"Creó al usuario " + dto.getUsername(), ResultadoAuditoria.EXITO);
-			return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado");
-		case 1:
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("El nombre de usuario ya existe");
-		case 2:
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("El correo ya está registrado");
-		case 3:
-			return ResponseEntity.badRequest().body("La contraseña no cumple con el estándar");
-		default:
-			return ResponseEntity.badRequest().body("Faltan datos obligatorios");
-		}
+		userService.create(dto);
+		auditoriaService.registrar(actual, AccionAuditoria.GESTION_USUARIO, "User", null,
+				"Creó al usuario " + dto.getUsername(), ResultadoAuditoria.EXITO);
+		return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado");
 	}
 
 	@GetMapping("/getall")
@@ -67,43 +57,28 @@ public class UserController {
 	}
 
 	@GetMapping("/getbyid/{id}")
-	public ResponseEntity<?> getById(@PathVariable Long id) {
-		UserDTO dto = userService.getById(id);
-		return dto == null ? ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado")
-				: ResponseEntity.ok(dto);
+	public ResponseEntity<UserDTO> getById(@PathVariable Long id) {
+		return ResponseEntity.ok(userService.getById(id));
 	}
 
 	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserDTO dto, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
-		int r = userService.updateById(id, dto);
-		switch (r) {
-		case 0:
-			auditoriaService.registrar(actual, AccionAuditoria.GESTION_USUARIO, "User", id, "Actualizó al usuario",
-					ResultadoAuditoria.EXITO);
-			return ResponseEntity.ok("Usuario actualizado");
-		case 1:
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("El nombre de usuario ya existe");
-		case 2:
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-		case 3:
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("El correo ya está registrado");
-		default:
-			return ResponseEntity.badRequest().body("La contraseña no cumple con el estándar");
-		}
+		userService.updateById(id, dto);
+		auditoriaService.registrar(actual, AccionAuditoria.GESTION_USUARIO, "User", id, "Actualizó al usuario",
+				ResultadoAuditoria.EXITO);
+		return ResponseEntity.ok("Usuario actualizado");
 	}
 
 	@DeleteMapping("/deletebyid/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
 		if (actual.getId().equals(id)) {
-			return ResponseEntity.badRequest().body("No puedes eliminar tu propia cuenta");
+			throw new DatosInvalidosException("No puedes eliminar tu propia cuenta");
 		}
-		if (userService.deleteById(id) == 0) {
-			auditoriaService.registrar(actual, AccionAuditoria.GESTION_USUARIO, "User", id, "Eliminó al usuario",
-					ResultadoAuditoria.EXITO);
-			return ResponseEntity.ok("Usuario eliminado");
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+		userService.deleteById(id);
+		auditoriaService.registrar(actual, AccionAuditoria.GESTION_USUARIO, "User", id, "Eliminó al usuario",
+				ResultadoAuditoria.EXITO);
+		return ResponseEntity.ok("Usuario eliminado");
 	}
 }

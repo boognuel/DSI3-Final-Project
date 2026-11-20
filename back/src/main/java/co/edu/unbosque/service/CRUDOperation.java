@@ -3,7 +3,8 @@ package co.edu.unbosque.service;
 import java.util.List;
 
 /**
- * Operaciones CRUD básicas que implementan los servicios de la aplicación.
+ * Operaciones CRUD básicas que implementan los servicios de la aplicación. Cuando una operación no
+ * se puede completar, el servicio lanza una excepción de {@code co.edu.unbosque.exception}.
  *
  * @param <T> tipo de DTO que maneja el servicio
  */
@@ -13,9 +14,8 @@ public interface CRUDOperation<T> {
 	 * Crea un registro.
 	 *
 	 * @param data datos del registro
-	 * @return código de resultado definido por cada servicio (0 indica éxito)
 	 */
-	public int create(T data);
+	public void create(T data);
 
 	/**
 	 * Obtiene todos los registros.
@@ -28,18 +28,16 @@ public interface CRUDOperation<T> {
 	 * Elimina un registro por su identificador.
 	 *
 	 * @param id identificador del registro
-	 * @return código de resultado definido por cada servicio (0 indica éxito)
 	 */
-	public int deleteById(Long id);
+	public void deleteById(Long id);
 
 	/**
 	 * Actualiza un registro por su identificador.
 	 *
 	 * @param id      identificador del registro
 	 * @param newData datos nuevos
-	 * @return código de resultado definido por cada servicio (0 indica éxito)
 	 */
-	public int updateById(Long id, T newData);
+	public void updateById(Long id, T newData);
 
 	/**
 	 * Cuenta los registros existentes.

@@ -2,18 +2,22 @@ package co.edu.unbosque.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import co.edu.unbosque.dto.UserDTO;
-import co.edu.unbosque.exception.PasswordNotValidException;
+import co.edu.unbosque.exception.ConflictoException;
+import co.edu.unbosque.exception.DatosInvalidosException;
+import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.model.User;
 import co.edu.unbosque.repository.UserRepository;
 import co.edu.unbosque.util.PasswordValidator;
 
-// Gestión de usuarios por el ADMIN. El registro público está en AuthService.
+/**
+ * Gestión de usuarios por parte del administrador. El registro público está en
+ * {@link AuthService}.
+ */
 @Service
 public class UserService implements CRUDOperation<UserDTO> {
 	@Autowired
@@ -33,24 +37,27 @@ public class UserService implements CRUDOperation<UserDTO> {
 		return userRepo.existsById(id);
 	}
 
-	// 0 = ok, 1 = username en uso, 2 = correo en uso, 3 = contraseña no válida, 4 = faltan datos
+	/**
+	 * Crea un usuario con el correo ya verificado, porque lo registra un administrador.
+	 *
+	 * @param data datos del usuario
+	 * @throws DatosInvalidosException si faltan el usuario o el correo, o la contraseña no cumple
+	 *                                 la política
+	 * @throws ConflictoException      si el nombre de usuario o el correo ya están registrados
+	 */
 	@Override
-	public int create(UserDTO data) {
+	public void create(UserDTO data) {
 		if (data.getUsername() == null || data.getEmail() == null) {
-			return 4;
+			throw new DatosInvalidosException("Faltan datos obligatorios");
 		}
 		if (userRepo.existsByUsername(data.getUsername())) {
-			return 1;
+			throw new ConflictoException("El nombre de usuario ya existe");
 		}
 		String email = data.getEmail().trim().toLowerCase();
 		if (userRepo.existsByEmail(email)) {
-			return 2;
+			throw new ConflictoException("El correo ya está registrado");
 		}
-		try {
-			PasswordValidator.validar(data.getPassword());
-		} catch (PasswordNotValidException e) {
-			return 3;
-		}
+		PasswordValidator.validar(data.getPassword());
 		User u = new User();
 		u.setUsername(data.getUsername());
 		u.setEmail(email);
@@ -58,9 +65,8 @@ public class UserService implements CRUDOperation<UserDTO> {
 		if (data.getRole() != null) {
 			u.setRole(data.getRole());
 		}
-		u.setEmailVerificado(true); // lo crea un admin
+		u.setEmailVerificado(true);
 		userRepo.save(u);
-		return 0;
 	}
 
 	@Override
@@ -70,27 +76,32 @@ public class UserService implements CRUDOperation<UserDTO> {
 		return dtoList;
 	}
 
+	/**
+	 * Elimina un usuario.
+	 *
+	 * @param id identificador del usuario
+	 * @throws RecursoNoEncontradoException si el usuario no existe
+	 */
 	@Override
-	public int deleteById(Long id) {
-		Optional<User> found = userRepo.findById(id);
-		if (found.isPresent()) {
-			userRepo.delete(found.get());
-			return 0;
-		}
-		return 1;
+	public void deleteById(Long id) {
+		userRepo.delete(buscar(id));
 	}
 
-	// 0 = ok, 1 = username en uso, 2 = no existe, 3 = correo en uso, 4 = contraseña no válida
+	/**
+	 * Actualiza los campos enviados del usuario; los campos nulos se dejan igual.
+	 *
+	 * @param id      identificador del usuario
+	 * @param newData datos nuevos
+	 * @throws RecursoNoEncontradoException si el usuario no existe
+	 * @throws ConflictoException           si el nuevo nombre de usuario o correo ya están en uso
+	 * @throws DatosInvalidosException      si la nueva contraseña no cumple la política
+	 */
 	@Override
-	public int updateById(Long id, UserDTO newData) {
-		Optional<User> found = userRepo.findById(id);
-		if (found.isEmpty()) {
-			return 2;
-		}
-		User u = found.get();
+	public void updateById(Long id, UserDTO newData) {
+		User u = buscar(id);
 		if (newData.getUsername() != null && !newData.getUsername().equals(u.getUsername())) {
 			if (userRepo.existsByUsername(newData.getUsername())) {
-				return 1;
+				throw new ConflictoException("El nombre de usuario ya existe");
 			}
 			u.setUsername(newData.getUsername());
 		}
@@ -98,17 +109,13 @@ public class UserService implements CRUDOperation<UserDTO> {
 			String email = newData.getEmail().trim().toLowerCase();
 			if (!email.equals(u.getEmail())) {
 				if (userRepo.existsByEmail(email)) {
-					return 3;
+					throw new ConflictoException("El correo ya está registrado");
 				}
 				u.setEmail(email);
 			}
 		}
 		if (newData.getPassword() != null && !newData.getPassword().isBlank()) {
-			try {
-				PasswordValidator.validar(newData.getPassword());
-			} catch (PasswordNotValidException e) {
-				return 4;
-			}
+			PasswordValidator.validar(newData.getPassword());
 			u.setPassword(passwordEncoder.encode(newData.getPassword()));
 		}
 		if (newData.getRole() != null) {
@@ -121,10 +128,20 @@ public class UserService implements CRUDOperation<UserDTO> {
 			u.setEmailVerificado(newData.getEmailVerificado());
 		}
 		userRepo.save(u);
-		return 0;
 	}
 
+	/**
+	 * Obtiene un usuario por su identificador.
+	 *
+	 * @param id identificador del usuario
+	 * @return datos del usuario
+	 * @throws RecursoNoEncontradoException si el usuario no existe
+	 */
 	public UserDTO getById(Long id) {
-		return userRepo.findById(id).map(u -> modelMapper.map(u, UserDTO.class)).orElse(null);
+		return modelMapper.map(buscar(id), UserDTO.class);
+	}
+
+	private User buscar(Long id) {
+		return userRepo.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 	}
 }

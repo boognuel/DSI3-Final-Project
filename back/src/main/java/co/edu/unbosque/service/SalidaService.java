@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import co.edu.unbosque.dto.SalidaDTO;
+import co.edu.unbosque.exception.DatosInvalidosException;
+import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.model.EstadoInvitacion;
 import co.edu.unbosque.model.EstadoSalida;
 import co.edu.unbosque.model.Salida;
@@ -16,6 +17,9 @@ import co.edu.unbosque.repository.InvitacionRepository;
 import co.edu.unbosque.repository.SalidaRepository;
 import co.edu.unbosque.repository.UserRepository;
 
+/**
+ * Gestión de las salidas que organizan los usuarios.
+ */
 @Service
 public class SalidaService implements CRUDOperation<SalidaDTO> {
 	@Autowired
@@ -35,23 +39,24 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 		return salidaRepo.existsById(id);
 	}
 
-	// 0 = ok, 1 = organizador no existe, 2 = presupuesto no válido. Deja el id en el DTO.
+	/**
+	 * Crea una salida en estado {@link EstadoSalida#PLANEANDO} y deja su identificador en el DTO.
+	 *
+	 * @param data datos de la salida, con el identificador del organizador
+	 * @throws RecursoNoEncontradoException si el organizador no existe
+	 * @throws DatosInvalidosException      si el presupuesto es nulo o negativo
+	 */
 	@Override
-	public int create(SalidaDTO data) {
-		Optional<User> org = userRepo.findById(data.getOrganizadorId());
-		if (org.isEmpty()) {
-			return 1;
-		}
-		if (data.getPresupuesto() == null || data.getPresupuesto().signum() < 0) {
-			return 2;
-		}
+	public void create(SalidaDTO data) {
+		User org = userRepo.findById(data.getOrganizadorId())
+				.orElseThrow(() -> new RecursoNoEncontradoException("Organizador no encontrado"));
+		validarPresupuesto(data);
 		Salida s = new Salida();
-		s.setOrganizador(org.get());
+		s.setOrganizador(org);
 		copiar(data, s);
 		s.setEstado(EstadoSalida.PLANEANDO);
 		salidaRepo.save(s);
 		data.setId(s.getId());
-		return 0;
 	}
 
 	@Override
@@ -61,37 +66,55 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 		return lista;
 	}
 
+	/**
+	 * Elimina una salida.
+	 *
+	 * @param id identificador de la salida
+	 * @throws RecursoNoEncontradoException si la salida no existe
+	 */
 	@Override
-	public int deleteById(Long id) {
-		Optional<Salida> found = salidaRepo.findById(id);
-		if (found.isPresent()) {
-			salidaRepo.delete(found.get());
-			return 0;
-		}
-		return 1;
+	public void deleteById(Long id) {
+		salidaRepo.delete(buscar(id));
 	}
 
-	// 0 = ok, 1 = no existe, 2 = presupuesto no válido
+	/**
+	 * Actualiza los datos de una salida y, si se envía, su estado.
+	 *
+	 * @param id      identificador de la salida
+	 * @param newData datos nuevos
+	 * @throws RecursoNoEncontradoException si la salida no existe
+	 * @throws DatosInvalidosException      si el presupuesto es nulo o negativo
+	 */
 	@Override
-	public int updateById(Long id, SalidaDTO newData) {
-		Optional<Salida> found = salidaRepo.findById(id);
-		if (found.isEmpty()) {
-			return 1;
-		}
-		if (newData.getPresupuesto() == null || newData.getPresupuesto().signum() < 0) {
-			return 2;
-		}
-		Salida s = found.get();
+	public void updateById(Long id, SalidaDTO newData) {
+		Salida s = buscar(id);
+		validarPresupuesto(newData);
 		copiar(newData, s);
 		if (newData.getEstado() != null) {
 			s.setEstado(newData.getEstado());
 		}
 		salidaRepo.save(s);
-		return 0;
 	}
 
+	/**
+	 * Obtiene una salida por su identificador.
+	 *
+	 * @param id identificador de la salida
+	 * @return datos de la salida
+	 * @throws RecursoNoEncontradoException si la salida no existe
+	 */
 	public SalidaDTO getById(Long id) {
-		return salidaRepo.findById(id).map(this::toDTO).orElse(null);
+		return toDTO(buscar(id));
+	}
+
+	private Salida buscar(Long id) {
+		return salidaRepo.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Salida no encontrada"));
+	}
+
+	private void validarPresupuesto(SalidaDTO d) {
+		if (d.getPresupuesto() == null || d.getPresupuesto().signum() < 0) {
+			throw new DatosInvalidosException("Presupuesto no válido");
+		}
 	}
 
 	// Salidas que organiza el usuario + salidas donde aceptó una invitación
