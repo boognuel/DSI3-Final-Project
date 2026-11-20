@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Token de un solo uso que se envía por correo para verificar la cuenta o cambiar la contraseña.
+ */
 @Entity
 @Table(name = "token_usuario")
 @Getter
