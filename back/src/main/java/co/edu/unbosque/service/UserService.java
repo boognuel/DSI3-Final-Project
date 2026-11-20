@@ -27,11 +27,22 @@ public class UserService implements CRUDOperation<UserDTO> {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	/**
+	 * Cuenta los usuarios.
+	 *
+	 * @return número de usuarios
+	 */
 	@Override
 	public long count() {
 		return userRepo.count();
 	}
 
+	/**
+	 * Indica si existe un usuario.
+	 *
+	 * @param id identificador del usuario
+	 * @return {@code true} si existe
+	 */
 	@Override
 	public boolean exist(Long id) {
 		return userRepo.existsById(id);
@@ -69,6 +80,11 @@ public class UserService implements CRUDOperation<UserDTO> {
 		userRepo.save(u);
 	}
 
+	/**
+	 * Lista todos los usuarios, sin sus contraseñas.
+	 *
+	 * @return usuarios
+	 */
 	@Override
 	public List<UserDTO> getAll() {
 		List<UserDTO> dtoList = new ArrayList<>();
@@ -141,6 +157,13 @@ public class UserService implements CRUDOperation<UserDTO> {
 		return modelMapper.map(buscar(id), UserDTO.class);
 	}
 
+	/**
+	 * Busca la entidad de un usuario.
+	 *
+	 * @param id identificador del usuario
+	 * @return el usuario
+	 * @throws RecursoNoEncontradoException si no existe
+	 */
 	private User buscar(Long id) {
 		return userRepo.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 	}

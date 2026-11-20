@@ -7,7 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-// El token NO va aquí: solo lo recibe el invitado por correo
+/**
+ * Datos de una invitación a una salida. El token no va aquí: solo lo recibe el invitado por correo.
+ */
 @Data
 public class InvitacionDTO {
 	private Long id;

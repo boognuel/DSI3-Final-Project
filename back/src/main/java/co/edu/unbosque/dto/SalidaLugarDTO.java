@@ -3,6 +3,9 @@ package co.edu.unbosque.dto;
 import java.math.BigDecimal;
 import lombok.Data;
 
+/**
+ * Lugar propuesto en una salida, con su orden, si es el destino elegido y el costo por persona.
+ */
 @Data
 public class SalidaLugarDTO {
 	private Long id;

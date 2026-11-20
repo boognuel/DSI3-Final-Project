@@ -29,11 +29,22 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 	@Autowired
 	private InvitacionRepository invitacionRepo;
 
+	/**
+	 * Cuenta las salidas.
+	 *
+	 * @return número de salidas
+	 */
 	@Override
 	public long count() {
 		return salidaRepo.count();
 	}
 
+	/**
+	 * Indica si existe una salida.
+	 *
+	 * @param id identificador de la salida
+	 * @return {@code true} si existe
+	 */
 	@Override
 	public boolean exist(Long id) {
 		return salidaRepo.existsById(id);
@@ -59,6 +70,11 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 		data.setId(s.getId());
 	}
 
+	/**
+	 * Lista todas las salidas.
+	 *
+	 * @return salidas
+	 */
 	@Override
 	public List<SalidaDTO> getAll() {
 		List<SalidaDTO> lista = new ArrayList<>();
@@ -107,17 +123,35 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 		return toDTO(buscar(id));
 	}
 
+	/**
+	 * Busca la entidad de una salida.
+	 *
+	 * @param id identificador de la salida
+	 * @return la salida
+	 * @throws RecursoNoEncontradoException si no existe
+	 */
 	private Salida buscar(Long id) {
 		return salidaRepo.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Salida no encontrada"));
 	}
 
+	/**
+	 * Valida que el presupuesto exista y no sea negativo.
+	 *
+	 * @param d datos de la salida
+	 * @throws DatosInvalidosException si el presupuesto no es válido
+	 */
 	private void validarPresupuesto(SalidaDTO d) {
 		if (d.getPresupuesto() == null || d.getPresupuesto().signum() < 0) {
 			throw new DatosInvalidosException("Presupuesto no válido");
 		}
 	}
 
-	// Salidas que organiza el usuario + salidas donde aceptó una invitación
+	/**
+	 * Lista las salidas que organiza el usuario y aquellas en las que aceptó una invitación.
+	 *
+	 * @param u usuario autenticado
+	 * @return salidas del usuario, sin repetir
+	 */
 	public List<SalidaDTO> getMisSalidas(User u) {
 		Map<Long, Salida> todas = new LinkedHashMap<>();
 		salidaRepo.findByOrganizadorId(u.getId()).forEach(s -> todas.put(s.getId(), s));
@@ -128,15 +162,35 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 		return lista;
 	}
 
+	/**
+	 * Indica si el usuario organiza la salida.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @param userId   identificador del usuario
+	 * @return {@code true} si es el organizador
+	 */
 	public boolean esOrganizador(Long salidaId, Long userId) {
 		return salidaRepo.findById(salidaId).map(s -> s.getOrganizador().getId().equals(userId)).orElse(false);
 	}
 
+	/**
+	 * Indica si el usuario organiza la salida o aceptó una invitación a ella.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @param u        usuario autenticado
+	 * @return {@code true} si participa
+	 */
 	public boolean esParticipante(Long salidaId, User u) {
 		return esOrganizador(salidaId, u.getId()) || invitacionRepo
 				.existsBySalidaIdAndEmailInvitadoIgnoreCaseAndEstado(salidaId, u.getEmail(), EstadoInvitacion.ACEPTADA);
 	}
 
+	/**
+	 * Copia los datos editables del DTO a la entidad.
+	 *
+	 * @param d datos recibidos
+	 * @param s salida que se modifica
+	 */
 	private void copiar(SalidaDTO d, Salida s) {
 		s.setTitulo(d.getTitulo());
 		s.setDescripcion(d.getDescripcion());
@@ -148,6 +202,12 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 		s.setFechaHora(d.getFechaHora());
 	}
 
+	/**
+	 * Convierte la entidad en DTO, con el nombre del organizador.
+	 *
+	 * @param s salida
+	 * @return datos de la salida
+	 */
 	private SalidaDTO toDTO(Salida s) {
 		SalidaDTO d = new SalidaDTO();
 		d.setId(s.getId());
