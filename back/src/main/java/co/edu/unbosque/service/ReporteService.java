@@ -48,7 +48,8 @@ public class ReporteService {
 	 * @throws IOException si no se puede escribir el archivo
 	 */
 	public byte[] generarExcel(LocalDateTime desde, LocalDateTime hasta) throws IOException {
-		try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+		try (XSSFWorkbook wb = new XSSFWorkbook();
+				ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 			Sheet resumen = wb.createSheet("Resumen");
 			fila(resumen, 0, "Periodo", desde.format(FORMATO_FECHA) + " a " + hasta.format(FORMATO_FECHA));
 			fila(resumen, 2, "Acción", "Total");
