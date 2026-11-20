@@ -11,10 +11,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import co.edu.unbosque.model.User;
 import co.edu.unbosque.repository.UserRepository;
 
+/**
+ * Carga los datos iniciales de la base de datos al arrancar la aplicación. Crea el usuario
+ * administrador si todavía no existe.
+ */
 @Configuration
 public class LoadDatabase {
 	private static final Logger log = LoggerFactory.getLogger(LoadDatabase.class);
 
+	/**
+	 * Crea el usuario administrador con el correo y la contraseña configurados. Si la variable de
+	 * entorno {@code ADMIN_PASSWORD} no está definida, no lo crea y lo informa en el log.
+	 *
+	 * @param userRepo        repositorio de usuarios
+	 * @param passwordEncoder codificador para guardar la contraseña cifrada
+	 * @param adminEmail      correo del administrador ({@code app.admin.email})
+	 * @param adminPassword   contraseña del administrador ({@code app.admin.password})
+	 * @return tarea que se ejecuta al iniciar la aplicación
+	 */
 	@Bean
 	CommandLineRunner initDatabase(UserRepository userRepo, PasswordEncoder passwordEncoder,
 			@Value("${app.admin.email}") String adminEmail, @Value("${app.admin.password}") String adminPassword) {

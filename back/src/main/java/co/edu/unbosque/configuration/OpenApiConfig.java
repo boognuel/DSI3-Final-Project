@@ -10,12 +10,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuración de OpenAPI (Swagger) para documentar la API REST. Esta clase define la información
- * general de la API, esquemas de seguridad, y componentes reutilizables para la documentación.
+ * Configuración de OpenAPI (Swagger) para documentar la API REST de BogoParche. Define la
+ * información general de la API, el esquema de seguridad JWT y respuestas reutilizables.
  */
 @Configuration
 public class OpenApiConfig {
-  // Clase de configuración para la documentación OpenAPI
 
   /**
    * Define componentes reutilizables para la documentación OpenAPI. Incluye ejemplos de respuestas
@@ -27,23 +26,23 @@ public class OpenApiConfig {
   public OpenAPI customOpenAPI() {
     // Crear la descripción principal con HTML correctamente formateado
     String mainDescription =
-        "<h2>Guía para principiantes de la API REST</h2><p>Esta API proporciona funcionalidades"
-            + " para gestionar usuarios y autenticación mediante JWT.</p><h3>Conceptos"
-            + " básicos:</h3><ul>    <li><strong>JWT (JSON Web Token)</strong>: Un estándar para"
-            + " crear tokens de acceso. Cuando inicias sesión,         recibirás un token que debes"
-            + " incluir en las cabeceras de tus peticiones posteriores.</li>   "
-            + " <li><strong>Autenticación</strong>: Proceso de verificar tu identidad mediante"
-            + " credenciales (usuario y contraseña).</li>    <li><strong>Autorización</strong>:"
-            + " Determina qué acciones puede realizar un usuario autenticado según su rol.</li>"
-            + "</ul><h3>Flujo básico de uso:</h3><ol>    <li>Registra un nuevo usuario usando"
-            + " <code>/auth/register</code></li>    <li>Inicia sesión con <code>/auth/login</code>"
-            + " para obtener un token JWT</li>    <li>Incluye el token en el encabezado de"
-            + " autorización de tus peticiones: <code>Authorization: Bearer"
-            + " tu_token_jwt</code></li>    <li>Usa los endpoints de usuario para gestionar"
-            + " usuarios (requiere autenticación)</li></ol><h3>Roles de usuario:</h3><ul>   "
-            + " <li><strong>USER</strong>: Puede ver información de usuarios</li>   "
-            + " <li><strong>ADMIN</strong>: Puede crear, actualizar y eliminar usuarios además de"
-            + " ver información</li></ul><h3>Códigos de estado HTTP comunes:</h3><ul>   "
+        "<h2>API REST de BogoParche</h2><p>BogoParche recomienda planes para salir con amigos en"
+            + " Bogotá, de la calle 75 hacia el norte, según el presupuesto y los gustos de cada"
+            + " usuario. Esta API gestiona usuarios, salidas, lugares, invitaciones por correo,"
+            + " rutas y la auditoría del sistema.</p><h3>Conceptos básicos:</h3><ul>   "
+            + " <li><strong>JWT (JSON Web Token)</strong>: al iniciar sesión se recibe un token que"
+            + " debe enviarse en las cabeceras de las peticiones siguientes.</li>   "
+            + " <li><strong>Autenticación</strong>: verificación de la identidad con usuario y"
+            + " contraseña.</li>    <li><strong>Autorización</strong>: define qué acciones puede"
+            + " realizar un usuario autenticado según su rol.</li></ul><h3>Flujo básico de"
+            + " uso:</h3><ol>    <li>Registrarse con <code>/auth/register</code></li>   "
+            + " <li>Verificar el correo con el enlace recibido</li>    <li>Iniciar sesión con"
+            + " <code>/auth/login</code> para obtener el token JWT</li>    <li>Incluir el token en"
+            + " el encabezado de las peticiones: <code>Authorization: Bearer"
+            + " tu_token_jwt</code></li></ol><h3>Roles de usuario:</h3><ul>   "
+            + " <li><strong>USER</strong>: crea salidas, elige lugares e invita amigos</li>   "
+            + " <li><strong>ADMIN</strong>: gestiona usuarios, consulta la auditoría y descarga"
+            + " el reporte</li></ul><h3>Códigos de estado HTTP comunes:</h3><ul>   "
             + " <li><strong>200/201</strong>: Operación exitosa</li>    <li><strong>400</strong>:"
             + " Error en la solicitud (datos incorrectos)</li>    <li><strong>401</strong>: No"
             + " autenticado (token inválido o expirado)</li>    <li><strong>403</strong>: No"
@@ -67,18 +66,17 @@ public class OpenApiConfig {
     // Crear objeto Info con la descripción HTML
     io.swagger.v3.oas.models.info.Info info =
         new io.swagger.v3.oas.models.info.Info()
-            .title("API de Primera Aplicación Spring")
+            .title("API de BogoParche")
             .version("1.0")
             .description(mainDescription)
             .contact(
                 new io.swagger.v3.oas.models.info.Contact()
-                    .name("Equipo de Desarrollo")
-                    .email("soporte@ejemplo.com")
-                    .url("https://github.com/tu-usuario/SpringFirstAppJWT"))
+                    .name("Equipo BogoParche")
+                    .url("https://github.com/boognuel/DSI3-Final-Project"))
             .license(
                 new io.swagger.v3.oas.models.info.License()
-                    .name("Licencia MIT")
-                    .url("https://opensource.org/licenses/MIT"));
+                    .name("GNU GPL v3.0")
+                    .url("https://www.gnu.org/licenses/gpl-3.0.html"));
 
     // Crear el esquema de seguridad
     io.swagger.v3.oas.models.security.SecurityScheme securityScheme =
