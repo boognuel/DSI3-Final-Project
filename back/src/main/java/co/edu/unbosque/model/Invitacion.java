@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Invitación a una salida enviada por correo. El token del enlace prueba que quien responde tiene
+ * acceso a ese correo.
+ */
 @Entity
 @Table(name = "invitacion")
 @Getter

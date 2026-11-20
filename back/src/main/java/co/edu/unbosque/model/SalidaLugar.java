@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Lugar propuesto para una salida. Uno de ellos se marca como el destino elegido.
+ */
 @Entity
 @Table(name = "salida_lugar", uniqueConstraints = @UniqueConstraint(columnNames = { "salida_id", "lugar_id" }))
 @Getter

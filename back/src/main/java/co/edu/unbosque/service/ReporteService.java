@@ -16,6 +16,9 @@ import co.edu.unbosque.repository.AuditoriaRepository;
 import co.edu.unbosque.repository.InvitacionRepository;
 import co.edu.unbosque.repository.SalidaRepository;
 
+/**
+ * Genera el reporte en Excel que descarga el administrador.
+ */
 @Service
 public class ReporteService {
 	@Autowired
@@ -25,7 +28,15 @@ public class ReporteService {
 	@Autowired
 	private InvitacionRepository invitacionRepo;
 
-	// Excel con tres hojas: Resumen (acciones por tipo), Auditoría (detalle) y Salidas
+	/**
+	 * Genera el Excel con cuatro hojas: Resumen (acciones por tipo en el periodo), Usuarios (todos
+	 * los usuarios), Auditoría (registros del periodo, con su ubicación en Google Maps) y Salidas.
+	 *
+	 * @param desde inicio del periodo de la auditoría
+	 * @param hasta fin del periodo de la auditoría
+	 * @return contenido del archivo .xlsx
+	 * @throws IOException si no se puede escribir el archivo
+	 */
 	public byte[] generarExcel(LocalDateTime desde, LocalDateTime hasta) throws IOException {
 		try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 			Sheet resumen = wb.createSheet("Resumen");
@@ -57,6 +68,13 @@ public class ReporteService {
 		}
 	}
 
+	/**
+	 * Escribe una fila. Los números quedan como números y lo demás como texto.
+	 *
+	 * @param hoja    hoja del libro
+	 * @param n       número de la fila, desde 0
+	 * @param valores valores de las celdas, en orden
+	 */
 	private void fila(Sheet hoja, int n, Object... valores) {
 		Row row = hoja.createRow(n);
 		for (int i = 0; i < valores.length; i++) {

@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Ruta calculada desde la ubicación de un usuario hasta un lugar de una salida.
+ */
 @Entity
 @Table(name = "ruta")
 @Getter

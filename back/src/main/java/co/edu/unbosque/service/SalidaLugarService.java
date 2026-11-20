@@ -60,6 +60,12 @@ public class SalidaLugarService {
 		salidaLugarRepo.save(sl);
 	}
 
+	/**
+	 * Lista los lugares propuestos para la salida, en el orden en que se agregaron.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @return lugares de la salida
+	 */
 	public List<SalidaLugarDTO> listar(Long salidaId) {
 		List<SalidaLugarDTO> lista = new ArrayList<>();
 		salidaLugarRepo.findBySalidaId(salidaId).forEach(sl -> lista.add(toDTO(sl)));
@@ -84,6 +90,12 @@ public class SalidaLugarService {
 		salidaLugarRepo.saveAll(todos);
 	}
 
+	/**
+	 * Convierte un lugar de la salida en DTO, con los datos del lugar para mostrarlo en el mapa.
+	 *
+	 * @param sl lugar de la salida
+	 * @return datos del lugar de la salida
+	 */
 	private SalidaLugarDTO toDTO(SalidaLugar sl) {
 		SalidaLugarDTO d = new SalidaLugarDTO();
 		d.setId(sl.getId());
