@@ -10,7 +10,10 @@ import org.springframework.data.repository.query.Param;
 import co.edu.unbosque.model.AccionAuditoria;
 import co.edu.unbosque.model.AuditoriaLog;
 
-// Extiende Repository (no JpaRepository) para no exponer delete: la auditoría solo se inserta y se consulta.
+/**
+ * Acceso a los registros de auditoría. Extiende {@link Repository} y no JpaRepository para no
+ * exponer operaciones de borrado: la auditoría solo se inserta y se consulta.
+ */
 public interface AuditoriaRepository extends Repository<AuditoriaLog, Long> {
 
 	AuditoriaLog save(AuditoriaLog log);

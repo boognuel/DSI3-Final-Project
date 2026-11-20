@@ -18,19 +18,48 @@ import co.edu.unbosque.model.User;
 import co.edu.unbosque.repository.AuditoriaRepository;
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Registro y consulta de la auditoría. Además de los datos que recibe, toma de la petición HTTP la
+ * IP, el navegador y la ubicación que envía el frontend en las cabeceras {@value #CABECERA_LATITUD}
+ * y {@value #CABECERA_LONGITUD}.
+ */
 @Service
 public class AuditoriaService {
+	/** Cabecera con la latitud del navegador, en grados decimales. */
+	public static final String CABECERA_LATITUD = "X-Latitud";
+	/** Cabecera con la longitud del navegador, en grados decimales. */
+	public static final String CABECERA_LONGITUD = "X-Longitud";
+
 	private static final Logger log = LoggerFactory.getLogger(AuditoriaService.class);
 
 	@Autowired
 	private AuditoriaRepository repo;
 
+	/**
+	 * Registra una acción de un usuario autenticado.
+	 *
+	 * @param u         usuario que hizo la acción
+	 * @param accion    acción realizada
+	 * @param entidad   tipo de registro afectado, por ejemplo "Salida"
+	 * @param entidadId identificador del registro afectado
+	 * @param detalle   descripción adicional
+	 * @param resultado resultado de la acción
+	 */
 	public void registrar(User u, AccionAuditoria accion, String entidad, Long entidadId, String detalle,
 			ResultadoAuditoria resultado) {
 		guardar(u == null ? null : u.getId(), u == null ? null : u.getUsername(),
 				u == null ? null : u.getRole().name(), accion, entidad, entidadId, detalle, resultado);
 	}
 
+	/**
+	 * Registra una acción hecha sin sesión, como el registro, el login o la respuesta a una
+	 * invitación.
+	 *
+	 * @param username  nombre o correo de quien hizo la acción, si se conoce
+	 * @param accion    acción realizada
+	 * @param detalle   descripción adicional
+	 * @param resultado resultado de la acción
+	 */
 	public void registrarSinSesion(String username, AccionAuditoria accion, String detalle,
 			ResultadoAuditoria resultado) {
 		guardar(null, username, null, accion, null, null, detalle, resultado);
@@ -54,6 +83,13 @@ public class AuditoriaService {
 				HttpServletRequest req = sra.getRequest();
 				l.setIpOrigen(req.getRemoteAddr());
 				l.setUserAgent(recortar(req.getHeader("User-Agent"), 255));
+				Double lat = coordenada(req.getHeader(CABECERA_LATITUD), 90);
+				Double lon = coordenada(req.getHeader(CABECERA_LONGITUD), 180);
+				// Solo se guarda la ubicación si llegan las dos coordenadas válidas
+				if (lat != null && lon != null) {
+					l.setLatitud(lat);
+					l.setLongitud(lon);
+				}
 			}
 			repo.save(l);
 		} catch (Exception e) {
@@ -62,6 +98,30 @@ public class AuditoriaService {
 		}
 	}
 
+	// Convierte la cabecera en número; devuelve null si falta, no es un número o está fuera de rango
+	private Double coordenada(String valor, double limite) {
+		if (valor == null || valor.isBlank()) {
+			return null;
+		}
+		try {
+			double d = Double.parseDouble(valor.trim());
+			return Double.isFinite(d) && Math.abs(d) <= limite ? d : null;
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Busca registros de auditoría, del más reciente al más antiguo.
+	 *
+	 * @param usuario parte del nombre de usuario; vacío o nulo para todos
+	 * @param accion  acción a filtrar; nula para todas
+	 * @param desde   fecha inicial
+	 * @param hasta   fecha final
+	 * @param page    número de página, desde 0
+	 * @param size    tamaño de página, entre 1 y 100
+	 * @return página de registros
+	 */
 	public Page<AuditoriaLog> buscar(String usuario, AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta,
 			int page, int size) {
 		PageRequest pr = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),

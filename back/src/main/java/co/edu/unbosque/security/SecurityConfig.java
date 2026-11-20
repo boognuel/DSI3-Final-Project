@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import co.edu.unbosque.service.AuditoriaService;
 
 @Configuration
 @EnableWebSecurity
@@ -51,7 +52,8 @@ public class SecurityConfig {
 		CorsConfiguration c = new CorsConfiguration();
 		c.setAllowedOrigins(List.of(origin));
 		c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		c.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+		c.setAllowedHeaders(List.of("Authorization", "Content-Type", AuditoriaService.CABECERA_LATITUD,
+				AuditoriaService.CABECERA_LONGITUD));
 		c.setExposedHeaders(List.of("Content-Disposition"));
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", c);

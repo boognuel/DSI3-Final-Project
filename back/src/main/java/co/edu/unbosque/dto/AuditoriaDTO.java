@@ -5,6 +5,9 @@ import co.edu.unbosque.model.AccionAuditoria;
 import co.edu.unbosque.model.ResultadoAuditoria;
 import lombok.Data;
 
+/**
+ * Datos de un registro de auditoría que se envían al administrador.
+ */
 @Data
 public class AuditoriaDTO {
 	private Long id;
@@ -18,5 +21,7 @@ public class AuditoriaDTO {
 	private String detalle;
 	private String ipOrigen;
 	private String userAgent;
+	private Double latitud;
+	private Double longitud;
 	private ResultadoAuditoria resultado;
 }
