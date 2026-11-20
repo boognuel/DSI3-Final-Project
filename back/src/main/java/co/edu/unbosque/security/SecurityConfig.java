@@ -22,15 +22,32 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import co.edu.unbosque.service.AuditoriaService;
 
+/**
+ * Configuración de seguridad: autenticación sin estado con JWT, permisos por ruta y rol, y CORS
+ * para el frontend.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthFilter;
 
+	/**
+	 * Crea la configuración con el filtro que valida el token JWT de cada petición.
+	 *
+	 * @param jwtAuthFilter filtro JWT
+	 */
 	public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
 		this.jwtAuthFilter = jwtAuthFilter;
 	}
 
+	/**
+	 * Define qué rutas son públicas, cuáles requieren el rol ADMIN y cuáles solo una sesión válida.
+	 * Las peticiones sin token válido a rutas protegidas reciben 401.
+	 *
+	 * @param http configuración HTTP de Spring Security
+	 * @return cadena de filtros de seguridad
+	 * @throws Exception si la configuración no se puede construir
+	 */
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable()).cors(Customizer.withDefaults())
@@ -47,6 +64,13 @@ public class SecurityConfig {
 		return http.build();
 	}
 
+	/**
+	 * Permite las peticiones del frontend, incluidas las cabeceras de ubicación que usa la auditoría,
+	 * y expone Content-Disposition para la descarga del reporte.
+	 *
+	 * @param origin origen permitido (app.cors.allowed-origin)
+	 * @return configuración CORS
+	 */
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.allowed-origin}") String origin) {
 		CorsConfiguration c = new CorsConfiguration();
@@ -60,12 +84,24 @@ public class SecurityConfig {
 		return source;
 	}
 
-	// Spring Security arma solo el proveedor de autenticación con UserDetailsServiceImpl y este PasswordEncoder
+	/**
+	 * Codificador de contraseñas con BCrypt. Spring Security arma el proveedor de autenticación con
+	 * UserDetailsServiceImpl y este codificador.
+	 *
+	 * @return codificador BCrypt
+	 */
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
+	/**
+	 * Expone el AuthenticationManager que usa el inicio de sesión.
+	 *
+	 * @param config configuración de autenticación de Spring
+	 * @return gestor de autenticación
+	 * @throws Exception si no se puede obtener
+	 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();

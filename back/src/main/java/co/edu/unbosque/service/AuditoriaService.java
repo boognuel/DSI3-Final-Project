@@ -65,6 +65,19 @@ public class AuditoriaService {
 		guardar(null, username, null, accion, null, null, detalle, resultado);
 	}
 
+	/**
+	 * Guarda un registro con los datos de la petición actual: IP, navegador y, si llegan válidas, la
+	 * latitud y longitud. Un fallo al guardar se registra en el log y no interrumpe la operación.
+	 *
+	 * @param usuarioId     identificador del usuario, o nulo
+	 * @param usuarioNombre nombre de usuario, o nulo
+	 * @param rol           rol del usuario, o nulo
+	 * @param accion        acción realizada
+	 * @param entidad       tipo de entidad afectada, o nulo
+	 * @param entidadId     identificador de la entidad, o nulo
+	 * @param detalle       descripción adicional, o nulo
+	 * @param resultado     resultado de la acción
+	 */
 	private void guardar(Long usuarioId, String usuarioNombre, String rol, AccionAuditoria accion, String entidad,
 			Long entidadId, String detalle, ResultadoAuditoria resultado) {
 		try {
@@ -98,7 +111,13 @@ public class AuditoriaService {
 		}
 	}
 
-	// Convierte la cabecera en número; devuelve null si falta, no es un número o está fuera de rango
+	/**
+	 * Convierte el valor de una cabecera de ubicación en número.
+	 *
+	 * @param valor  valor de la cabecera
+	 * @param limite valor absoluto máximo (90 para latitud, 180 para longitud)
+	 * @return la coordenada, o nulo si falta, no es un número o está fuera de rango
+	 */
 	private Double coordenada(String valor, double limite) {
 		if (valor == null || valor.isBlank()) {
 			return null;
@@ -130,6 +149,13 @@ public class AuditoriaService {
 		return accion == null ? repo.buscar(u, desde, hasta, pr) : repo.buscarPorAccion(u, accion, desde, hasta, pr);
 	}
 
+	/**
+	 * Recorta un texto al largo máximo de su columna.
+	 *
+	 * @param s   texto, o nulo
+	 * @param max largo máximo
+	 * @return el texto recortado, o nulo
+	 */
 	private String recortar(String s, int max) {
 		return s == null ? null : (s.length() > max ? s.substring(0, max) : s);
 	}
