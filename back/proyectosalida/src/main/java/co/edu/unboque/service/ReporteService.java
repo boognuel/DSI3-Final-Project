@@ -1,0 +1,72 @@
+package co.edu.unboque.service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import co.edu.unboque.model.AuditoriaLog;
+import co.edu.unboque.model.EstadoInvitacion;
+import co.edu.unboque.model.Salida;
+import co.edu.unboque.repository.AuditoriaRepository;
+import co.edu.unboque.repository.InvitacionRepository;
+import co.edu.unboque.repository.SalidaRepository;
+
+@Service
+public class ReporteService {
+	@Autowired
+	private AuditoriaRepository auditoriaRepo;
+	@Autowired
+	private SalidaRepository salidaRepo;
+	@Autowired
+	private InvitacionRepository invitacionRepo;
+
+	// Excel con tres hojas: Resumen (acciones por tipo), Auditoría (detalle) y Salidas
+	public byte[] generarExcel(LocalDateTime desde, LocalDateTime hasta) throws IOException {
+		try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			Sheet resumen = wb.createSheet("Resumen");
+			fila(resumen, 0, "Periodo", desde + " a " + hasta);
+			fila(resumen, 2, "Acción", "Total");
+			int n = 3;
+			for (Object[] f : auditoriaRepo.contarPorAccion(desde, hasta)) {
+				fila(resumen, n++, f[0], f[1]);
+			}
+
+			Sheet auditoria = wb.createSheet("Auditoría");
+			fila(auditoria, 0, "Fecha", "Usuario", "Rol", "Acción", "Entidad", "Entidad id", "Resultado", "IP", "Detalle");
+			n = 1;
+			for (AuditoriaLog a : auditoriaRepo.findByFechaBetweenOrderByFechaAsc(desde, hasta)) {
+				fila(auditoria, n++, a.getFecha(), a.getUsuarioNombre(), a.getRolUsuario(), a.getAccion(),
+						a.getEntidad(), a.getEntidadId(), a.getResultado(), a.getIpOrigen(), a.getDetalle());
+			}
+
+			Sheet salidas = wb.createSheet("Salidas");
+			fila(salidas, 0, "Id", "Título", "Organizador", "Presupuesto", "Estado", "Fecha", "Invitaciones aceptadas");
+			n = 1;
+			for (Salida s : salidaRepo.findAll()) {
+				fila(salidas, n++, s.getId(), s.getTitulo(), s.getOrganizador().getUsername(), s.getPresupuesto(),
+						s.getEstado(), s.getFechaHora(),
+						invitacionRepo.countBySalidaIdAndEstado(s.getId(), EstadoInvitacion.ACEPTADA));
+			}
+			wb.write(out);
+			return out.toByteArray();
+		}
+	}
+
+	private void fila(Sheet hoja, int n, Object... valores) {
+		Row row = hoja.createRow(n);
+		for (int i = 0; i < valores.length; i++) {
+			Cell c = row.createCell(i);
+			Object v = valores[i];
+			if (v instanceof Number num) {
+				c.setCellValue(num.doubleValue());
+			} else {
+				c.setCellValue(v == null ? "" : v.toString());
+			}
+		}
+	}
+}
