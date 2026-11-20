@@ -15,6 +15,7 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.util.ReflectionTestUtils;
+import co.edu.unbosque.model.EstadoInvitacion;
 import co.edu.unbosque.model.Invitacion;
 import co.edu.unbosque.model.Salida;
 import co.edu.unbosque.model.User;
@@ -79,6 +80,45 @@ class CorreoServiceTest {
 		assertTrue(html.contains("/invitacion?token=tok&respuesta=si"));
 		assertTrue(html.contains("/invitacion?token=tok&respuesta=no"));
 		assertEquals("Pedro te invitó a Empanadas <b>gratis</b>", m.getSubject());
+	}
+
+	/**
+	 * El aviso de respuesta le llega al organizador con el nombre del invitado y si aceptó o rechazó.
+	 *
+	 * @throws Exception si no se puede leer el mensaje
+	 */
+	@Test
+	void respuestaAvisaAlOrganizador() throws Exception {
+		Salida s = new Salida();
+		s.setTitulo("Empanadas");
+		s.setOrganizador(usuario("Pedro", "pedro@example.com"));
+		Invitacion inv = new Invitacion();
+		inv.setSalida(s);
+		inv.setEmailInvitado("luis@example.com");
+		inv.setUsuarioInvitado(usuario("Luis", "luis@example.com"));
+		inv.setEstado(EstadoInvitacion.RECHAZADA);
+		assertTrue(correoService.enviarRespuestaInvitacion(inv));
+		MimeMessage m = enviado();
+		assertEquals("pedro@example.com", m.getAllRecipients()[0].toString());
+		assertEquals("Luis rechazó tu invitación a Empanadas", m.getSubject());
+	}
+
+	/**
+	 * Si el invitado no tiene cuenta, el aviso usa su correo y dice que aceptó.
+	 *
+	 * @throws Exception si no se puede leer el mensaje
+	 */
+	@Test
+	void respuestaSinCuentaUsaElCorreoDelInvitado() throws Exception {
+		Salida s = new Salida();
+		s.setTitulo("Empanadas");
+		s.setOrganizador(usuario("Pedro", "pedro@example.com"));
+		Invitacion inv = new Invitacion();
+		inv.setSalida(s);
+		inv.setEmailInvitado("luis@example.com");
+		inv.setEstado(EstadoInvitacion.ACEPTADA);
+		assertTrue(correoService.enviarRespuestaInvitacion(inv));
+		assertTrue(contenido(enviado()).contains("luis@example.com aceptó tu invitación a Empanadas"));
 	}
 
 	/**

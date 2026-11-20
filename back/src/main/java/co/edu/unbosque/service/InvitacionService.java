@@ -104,8 +104,9 @@ public class InvitacionService {
 	}
 
 	/**
-	 * Registra la respuesta del invitado. Lo llama el invitado desde el enlace del correo; el token
-	 * es la prueba de que tiene acceso a ese correo.
+	 * Registra la respuesta del invitado y se la avisa al organizador por correo. Lo llama el invitado
+	 * desde el enlace del correo; el token es la prueba de que tiene acceso a ese correo. Si el aviso
+	 * no se puede enviar, la respuesta igual queda guardada y la falla se registra en la auditoría.
 	 *
 	 * @param token   token de la invitación
 	 * @param aceptar {@code true} para aceptar, {@code false} para rechazar
@@ -131,20 +132,43 @@ public class InvitacionService {
 		auditoriaService.registrarSinSesion(inv.getEmailInvitado(),
 				aceptar ? AccionAuditoria.ACEPTAR_INVITACION : AccionAuditoria.RECHAZAR_INVITACION,
 				"Invitación " + inv.getId() + " de la salida " + inv.getSalida().getId(), ResultadoAuditoria.EXITO);
+		if (!correoService.enviarRespuestaInvitacion(inv)) {
+			auditoriaService.registrarSinSesion(inv.getEmailInvitado(),
+					aceptar ? AccionAuditoria.ACEPTAR_INVITACION : AccionAuditoria.RECHAZAR_INVITACION,
+					"Falló el aviso al organizador de la invitación " + inv.getId(), ResultadoAuditoria.FALLO);
+		}
 	}
 
+	/**
+	 * Lista las invitaciones de una salida con su estado.
+	 *
+	 * @param salidaId identificador de la salida
+	 * @return invitaciones de la salida
+	 */
 	public List<InvitacionDTO> getBySalida(Long salidaId) {
 		List<InvitacionDTO> lista = new ArrayList<>();
 		invitacionRepo.findBySalidaId(salidaId).forEach(i -> lista.add(toDTO(i)));
 		return lista;
 	}
 
+	/**
+	 * Lista las invitaciones que llegaron al correo del usuario.
+	 *
+	 * @param u usuario autenticado
+	 * @return invitaciones recibidas
+	 */
 	public List<InvitacionDTO> getMisInvitaciones(User u) {
 		List<InvitacionDTO> lista = new ArrayList<>();
 		invitacionRepo.findByEmailInvitadoIgnoreCase(u.getEmail()).forEach(i -> lista.add(toDTO(i)));
 		return lista;
 	}
 
+	/**
+	 * Convierte la entidad en DTO, con el título de la salida.
+	 *
+	 * @param i invitación
+	 * @return datos de la invitación
+	 */
 	private InvitacionDTO toDTO(Invitacion i) {
 		InvitacionDTO d = new InvitacionDTO();
 		d.setId(i.getId());

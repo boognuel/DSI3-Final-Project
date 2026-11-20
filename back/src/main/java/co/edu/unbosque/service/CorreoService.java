@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
+import co.edu.unbosque.model.EstadoInvitacion;
 import co.edu.unbosque.model.Invitacion;
 import co.edu.unbosque.model.Salida;
 import co.edu.unbosque.model.User;
@@ -90,6 +91,27 @@ public class CorreoService {
 				+ boton(enlace + "&respuesta=si", "Sí") + "&nbsp;" + boton(enlace + "&respuesta=no", "No")
 				+ "<p>La invitación vence en " + diasInvitacion + " días.</p>";
 		return enviar(invitacion.getEmailInvitado(), organizador + " te invitó a " + titulo, cuerpo);
+	}
+
+	/**
+	 * Avisa al organizador de una salida que un invitado aceptó o rechazó la invitación.
+	 *
+	 * @param invitacion invitación ya respondida, con su salida y su estado
+	 * @return {@code true} si el correo se envió
+	 */
+	public boolean enviarRespuestaInvitacion(Invitacion invitacion) {
+		Salida salida = invitacion.getSalida();
+		User organizador = salida.getOrganizador();
+		String invitado = texto(invitacion.getUsuarioInvitado() != null ? invitacion.getUsuarioInvitado().getUsername()
+				: invitacion.getEmailInvitado());
+		String titulo = texto(salida.getTitulo());
+		String respuesta = invitacion.getEstado() == EstadoInvitacion.ACEPTADA ? "aceptó" : "rechazó";
+		String cuerpo = "<p>Hola " + texto(organizador.getUsername()) + ",</p>"
+				+ "<p style=\"font-size:18px\"><strong>" + invitado + " " + respuesta + " tu invitación a " + titulo
+				+ "</strong></p>"
+				+ (invitacion.getEstado() == EstadoInvitacion.ACEPTADA ? "<p>¡Ya tienes parche!</p>"
+						: "<p>Puedes invitar a otras personas desde BogoParche.</p>");
+		return enviar(organizador.getEmail(), invitado + " " + respuesta + " tu invitación a " + titulo, cuerpo);
 	}
 
 	/**
