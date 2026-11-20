@@ -2,6 +2,8 @@ package co.edu.unbosque.model;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +26,10 @@ public class AuditoriaLog {
 	private Long usuarioId;
 	private String usuarioNombre;
 	private String rolUsuario;
+	// Texto y no ENUM de MySQL: así agregar una acción nueva no exige modificar la columna
 	@Enumerated(EnumType.STRING)
+	@JdbcTypeCode(SqlTypes.VARCHAR)
+	@Column(length = 40)
 	private AccionAuditoria accion;
 	private String entidad;
 	private Long entidadId;
