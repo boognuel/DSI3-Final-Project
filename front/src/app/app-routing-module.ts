@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { guestGuard } from './guards/authguard';
+import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
 import { Logincomponent } from './components/logincomponent/logincomponent';
 import { Registrocomponent } from './components/registrocomponent/registrocomponent';
 import { Verificaremailcomponent } from './components/verificaremailcomponent/verificaremailcomponent';
@@ -7,13 +9,13 @@ import { Olvidopasswordcomponent } from './components/olvidopasswordcomponent/ol
 import { Restablecerpasswordcomponent } from './components/restablecerpasswordcomponent/restablecerpasswordcomponent';
 
 const routes: Routes = [
-  // Temporal: la página de inicio llega con front-recommendations
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
-  { path: 'login', component: Logincomponent },
-  { path: 'register', component: Registrocomponent },
+  { path: '', component: Iniciocomponent },
+  { path: 'login', component: Logincomponent, canActivate: [guestGuard] },
+  { path: 'register', component: Registrocomponent, canActivate: [guestGuard] },
   { path: 'verify-email', component: Verificaremailcomponent },
-  { path: 'forgot-password', component: Olvidopasswordcomponent },
+  { path: 'forgot-password', component: Olvidopasswordcomponent, canActivate: [guestGuard] },
   { path: 'reset-password', component: Restablecerpasswordcomponent },
+  { path: '**', redirectTo: '' },
 ];
 
 @NgModule({
