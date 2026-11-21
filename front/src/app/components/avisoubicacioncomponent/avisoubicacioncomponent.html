@@ -1,0 +1,11 @@
+@if (ubicacion.estado() === 'pendiente') {
+  <div class="aviso" role="region" aria-label="Aviso de ubicación">
+    <div class="container aviso__fila">
+      <p>📍 Usamos tu ubicación para mostrarte planes cerca de ti.</p>
+      <div class="aviso__acciones">
+        <button type="button" class="btn btn-primary btn-sm" (click)="ubicacion.solicitar()">Permitir</button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="ubicacion.rechazar()">Ahora no</button>
+      </div>
+    </div>
+  </div>
+}
