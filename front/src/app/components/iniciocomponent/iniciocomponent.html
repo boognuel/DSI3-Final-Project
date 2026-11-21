@@ -1,0 +1,87 @@
+<section class="hero">
+  <div class="container hero__fila">
+    <div class="hero__texto">
+      <span class="badge">Planes para todos los bolsillos</span>
+      <h1>Encuentra tu parche según tu bolsillo</h1>
+      <p>
+        Descubre planes para hoy, este fin de semana o cuando quieras, organizados por cuánto
+        quieres gastar.
+      </p>
+      <div class="hero__botones">
+        <a class="btn btn-primary" routerLink="/" fragment="planes">Ver planes de hoy</a>
+        <a class="btn btn-ghost" routerLink="/" fragment="como-funciona">Cómo funciona</a>
+      </div>
+    </div>
+
+    <article class="card plan plan--destacado">
+      <div [class]="'plan__img ' + destacado.tono"></div>
+      <div class="plan__cuerpo">
+        <span class="badge badge-naranja">Plan destacado de hoy</span>
+        <h3>{{ destacado.titulo }}</h3>
+        <p class="plan__detalle">{{ destacado.detalle }}</p>
+        <div class="plan__pie">
+          <strong class="plan__precio">{{ destacado.precio }}</strong>
+          <button class="btn btn-primary btn-sm" type="button">Ver plan</button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="seccion" id="rangos">
+  <div class="container">
+    <h2>Elige tu rango de precio</h2>
+    <p class="seccion__sub">Filtra los planes según lo que quieras gastar por persona.</p>
+
+    <div class="rejilla">
+      @for (r of rangos; track r.titulo) {
+        <article class="card rango">
+          <span [class]="'badge ' + r.clase">{{ r.etiqueta }}</span>
+          <h3>{{ r.titulo }}</h3>
+          <p>{{ r.descripcion }}</p>
+          <a class="rango__enlace" routerLink="/" fragment="planes">{{ r.planes }} planes →</a>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="seccion seccion--alt" id="planes">
+  <div class="container">
+    <div class="seccion__cabecera">
+      <h2>Planes populares</h2>
+      <a routerLink="/" fragment="planes">Ver todos →</a>
+    </div>
+
+    <div class="rejilla">
+      @for (p of populares; track p.titulo) {
+        <article class="card plan">
+          <div [class]="'plan__img ' + p.tono"></div>
+          <div class="plan__cuerpo">
+            <span class="badge">{{ p.precio }}</span>
+            <h3>{{ p.titulo }}</h3>
+            <p class="plan__detalle">{{ p.detalle }}</p>
+            <button class="btn btn-ghost btn-sm" type="button">Ver plan</button>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="seccion" id="como-funciona">
+  <div class="container">
+    <h2>Cómo funciona</h2>
+    <p class="seccion__sub">Tres pasos para salir hoy mismo.</p>
+
+    <div class="rejilla">
+      @for (paso of pasos; track paso.numero) {
+        <article class="card paso">
+          <span class="paso__numero">{{ paso.numero }}</span>
+          <h3>{{ paso.titulo }}</h3>
+          <p>{{ paso.texto }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
