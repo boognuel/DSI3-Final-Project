@@ -1,4 +1,9 @@
+/**
+ * Configuración del entorno: dirección del back.
+ */
 export const environment = {
+  /** Indica si es el entorno de producción. */
   production: true,
-  apiUrl: 'http://localhost:8080', // cambiar por la URL del backend desplegado
+  /** Dirección del back. */
+  apiUrl: 'http://localhost:8080',
 };
