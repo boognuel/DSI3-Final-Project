@@ -5,9 +5,10 @@ import { App } from './app';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './interceptors/authinterceptor';
 import { Navbarcomponent } from './components/navbarcomponent/navbarcomponent';
+import { Footercomponent } from './components/footercomponent/footercomponent';
 
 @NgModule({
-  declarations: [App, Navbarcomponent],
+  declarations: [App, Navbarcomponent, Footercomponent],
   imports: [BrowserModule, AppRoutingModule],
   providers: [
     provideBrowserGlobalErrorListeners(),
