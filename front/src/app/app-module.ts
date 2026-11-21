@@ -13,6 +13,7 @@ import { Registrocomponent } from './components/registrocomponent/registrocompon
 import { Verificaremailcomponent } from './components/verificaremailcomponent/verificaremailcomponent';
 import { Olvidopasswordcomponent } from './components/olvidopasswordcomponent/olvidopasswordcomponent';
 import { Restablecerpasswordcomponent } from './components/restablecerpasswordcomponent/restablecerpasswordcomponent';
+import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { Restablecerpasswordcomponent } from './components/restablecerpasswordco
     Verificaremailcomponent,
     Olvidopasswordcomponent,
     Restablecerpasswordcomponent,
+    Iniciocomponent,
   ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule],
   providers: [
