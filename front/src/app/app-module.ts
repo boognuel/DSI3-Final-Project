@@ -11,6 +11,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Logincomponent } from './components/logincomponent/logincomponent';
 import { Registrocomponent } from './components/registrocomponent/registrocomponent';
 import { Verificaremailcomponent } from './components/verificaremailcomponent/verificaremailcomponent';
+import { Olvidopasswordcomponent } from './components/olvidopasswordcomponent/olvidopasswordcomponent';
+import { Restablecerpasswordcomponent } from './components/restablecerpasswordcomponent/restablecerpasswordcomponent';
 
 @NgModule({
   declarations: [
@@ -21,6 +23,8 @@ import { Verificaremailcomponent } from './components/verificaremailcomponent/ve
     Logincomponent,
     Registrocomponent,
     Verificaremailcomponent,
+    Olvidopasswordcomponent,
+    Restablecerpasswordcomponent,
   ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule],
   providers: [
