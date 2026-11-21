@@ -9,9 +9,17 @@ import { Footercomponent } from './components/footercomponent/footercomponent';
 import { Avisoubicacioncomponent } from './components/avisoubicacioncomponent/avisoubicacioncomponent';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Logincomponent } from './components/logincomponent/logincomponent';
+import { Registrocomponent } from './components/registrocomponent/registrocomponent';
 
 @NgModule({
-  declarations: [App, Navbarcomponent, Footercomponent, Avisoubicacioncomponent, Logincomponent],
+  declarations: [
+    App,
+    Navbarcomponent,
+    Footercomponent,
+    Avisoubicacioncomponent,
+    Logincomponent,
+    Registrocomponent,
+  ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule],
   providers: [
     provideBrowserGlobalErrorListeners(),
