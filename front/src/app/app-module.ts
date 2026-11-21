@@ -10,6 +10,7 @@ import { Avisoubicacioncomponent } from './components/avisoubicacioncomponent/av
 import { ReactiveFormsModule } from '@angular/forms';
 import { Logincomponent } from './components/logincomponent/logincomponent';
 import { Registrocomponent } from './components/registrocomponent/registrocomponent';
+import { Verificaremailcomponent } from './components/verificaremailcomponent/verificaremailcomponent';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { Registrocomponent } from './components/registrocomponent/registrocompon
     Avisoubicacioncomponent,
     Logincomponent,
     Registrocomponent,
+    Verificaremailcomponent,
   ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule],
   providers: [
