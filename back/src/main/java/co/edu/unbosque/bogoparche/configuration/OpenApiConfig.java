@@ -58,7 +58,7 @@ public class OpenApiConfig {
             + "    <li>Obtén un token JWT usando el endpoint <code>/auth/login</code></li>"
             + "    <li>Copia el token recibido en la respuesta</li>"
             + "    <li>Haz clic en el botón \"Authorize\" en la parte superior de esta página</li>"
-            + "    <li>En el campo \"Value\", escribe: <code>Bearer tu_token_jwt</code></li>"
+            + "    <li>En el campo \"Value\", pega solo el token, sin escribir Bearer: Swagger lo agrega.</li>"
             + "    <li>Haz clic en \"Authorize\" y luego en \"Close\"</li>"
             + "</ol>"
             + "<p>Ahora podrás acceder a los endpoints protegidos.</p>";
@@ -88,6 +88,7 @@ public class OpenApiConfig {
 
     return new OpenAPI()
         .info(info)
+        .addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement().addList("bearerAuth"))
         .components(
             new Components()
                 .addSecuritySchemes("bearerAuth", securityScheme)
