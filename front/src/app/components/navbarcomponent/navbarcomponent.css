@@ -1,0 +1,13 @@
+.navbar {
+  background-color: var(--bp-pie);
+  border-bottom: 1px solid var(--bp-borde);
+}
+
+.nav-link {
+  color: var(--bp-suave);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--bp-amarillo);
+}
