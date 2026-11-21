@@ -1,5 +1,6 @@
 package co.edu.unbosque.bogoparche.security;
 
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +42,7 @@ public class SecurityConfig {
 
 	/**
 	 * Define qué rutas son públicas, cuáles requieren el rol ADMIN y cuáles solo una sesión válida.
-	 * Las peticiones sin token válido a rutas protegidas reciben 401.
+	 * Las peticiones sin token válido a rutas protegidas reciben 401 y las de un rol sin permiso, 403.
 	 *
 	 * @param http configuración HTTP de Spring Security
 	 * @return cadena de filtros de seguridad
@@ -51,6 +52,8 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable()).cors(Customizer.withDefaults())
 				.authorizeHttpRequests(auth -> auth
+						// La página de error no exige sesión: si no, un 403 o un 500 llegaría como un 401 vacío
+						.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 						.requestMatchers("/auth/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/invitacion/responder").permitAll()
 						.requestMatchers("/", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
