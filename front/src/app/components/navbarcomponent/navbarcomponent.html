@@ -1,0 +1,34 @@
+<header class="navbar">
+  <div class="container navbar__inner">
+    <a routerLink="/" class="navbar__logo" (click)="cerrar()">
+      <img src="/bogoparche.png" alt="Bogoparche" />
+    </a>
+
+    <button
+      class="navbar__toggle"
+      type="button"
+      aria-label="Abrir menú"
+      [attr.aria-expanded]="abierto()"
+      (click)="alternar()"
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="navbar__menu" [class.abierto]="abierto()">
+      <a routerLink="/" fragment="planes" (click)="cerrar()">Planes</a>
+      <a routerLink="/" fragment="rangos" (click)="cerrar()">Rangos de precio</a>
+      <a routerLink="/" fragment="como-funciona" (click)="cerrar()">Cómo funciona</a>
+      <a routerLink="/" fragment="contacto" (click)="cerrar()">Contacto</a>
+
+      <div class="navbar__acciones">
+        @if (auth.logueado()) {
+          <span class="navbar__usuario">Hola, {{ auth.username() }}</span>
+          <button class="btn btn-ghost btn-sm" type="button" (click)="salir()">Salir</button>
+        } @else {
+          <a routerLink="/login" class="btn btn-ghost btn-sm" (click)="cerrar()">Ingresar</a>
+          <a routerLink="/register" class="btn btn-primary btn-sm" (click)="cerrar()">Crear cuenta</a>
+        }
+      </div>
+    </nav>
+  </div>
+</header>
