@@ -7,10 +7,12 @@ import { authInterceptor } from './interceptors/authinterceptor';
 import { Navbarcomponent } from './components/navbarcomponent/navbarcomponent';
 import { Footercomponent } from './components/footercomponent/footercomponent';
 import { Avisoubicacioncomponent } from './components/avisoubicacioncomponent/avisoubicacioncomponent';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Logincomponent } from './components/logincomponent/logincomponent';
 
 @NgModule({
-  declarations: [App, Navbarcomponent, Footercomponent, Avisoubicacioncomponent],
-  imports: [BrowserModule, AppRoutingModule],
+  declarations: [App, Navbarcomponent, Footercomponent, Avisoubicacioncomponent, Logincomponent],
+  imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor])),
