@@ -21,6 +21,7 @@ import { Admincategoriascomponent } from './components/admincategoriascomponent/
 import { Adminzonascomponent } from './components/adminzonascomponent/adminzonascomponent';
 import { Adminlugarescomponent } from './components/adminlugarescomponent/adminlugarescomponent';
 import { Adminsalidascomponent } from './components/adminsalidascomponent/adminsalidascomponent';
+import { Adminestadisticascomponent } from './components/adminestadisticascomponent/adminestadisticascomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -45,6 +46,7 @@ const routes: Routes = [
   { path: 'admin/zonas', component: Adminzonascomponent, canActivate: [AdminGuard] },
   { path: 'admin/lugares', component: Adminlugarescomponent, canActivate: [AdminGuard] },
   { path: 'admin/salidas', component: Adminsalidascomponent, canActivate: [AdminGuard] },
+  { path: 'admin/estadisticas', component: Adminestadisticascomponent, canActivate: [AdminGuard] },
   { path: 'admin', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
