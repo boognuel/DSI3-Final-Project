@@ -41,7 +41,7 @@ public class LugarController {
 	 * @param auth administrador autenticado
 	 * @return 201 con el lugar creado
 	 */
-	@PostMapping("/create")
+	@PostMapping("/createjson")
 	public ResponseEntity<LugarDTO> create(@Valid @RequestBody LugarDTO dto, Authentication auth) {
 		lugarService.create(dto);
 		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Lugar",
@@ -81,7 +81,7 @@ public class LugarController {
 	 * @param auth administrador autenticado
 	 * @return 200 si el lugar se actualizó
 	 */
-	@PutMapping("/update/{id}")
+	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<String> update(@PathVariable Long id, @Valid @RequestBody LugarDTO dto,
 			Authentication auth) {
 		lugarService.updateById(id, dto);
