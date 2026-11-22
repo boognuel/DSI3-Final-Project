@@ -7,6 +7,7 @@ import co.edu.unbosque.bogoparche.dto.CategoriaDTO;
 import co.edu.unbosque.bogoparche.exception.ConflictoException;
 import co.edu.unbosque.bogoparche.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.bogoparche.model.Categoria;
+import co.edu.unbosque.bogoparche.model.Lugar;
 import co.edu.unbosque.bogoparche.repository.CategoriaRepository;
 import co.edu.unbosque.bogoparche.repository.LugarRepository;
 
@@ -81,6 +82,12 @@ public class CategoriaService implements CRUDOperation<CategoriaDTO> {
 		}
 		copiar(newData, c, nombre);
 		categoriaRepo.save(c);
+		if (c.getPrecioReferencia() != null) {
+			for (Lugar l : lugarRepo.findByCategoriaIdAndPrecioEstimadoTrue(id)) {
+				l.setCostoEstimado(OverpassService.precioEnZona(c.getPrecioReferencia(), l.getZona()));
+				lugarRepo.save(l);
+			}
+		}
 	}
 
 	/**
@@ -148,6 +155,8 @@ public class CategoriaService implements CRUDOperation<CategoriaDTO> {
 	private void copiar(CategoriaDTO d, Categoria c, String nombre) {
 		c.setNombre(nombre);
 		c.setDescripcion(d.getDescripcion());
+		c.setEtiquetaOsm(d.getEtiquetaOsm() == null || d.getEtiquetaOsm().isBlank() ? null : d.getEtiquetaOsm().trim());
+		c.setPrecioReferencia(d.getPrecioReferencia());
 	}
 
 	/**
@@ -161,6 +170,8 @@ public class CategoriaService implements CRUDOperation<CategoriaDTO> {
 		d.setId(c.getId());
 		d.setNombre(c.getNombre());
 		d.setDescripcion(c.getDescripcion());
+		d.setEtiquetaOsm(c.getEtiquetaOsm());
+		d.setPrecioReferencia(c.getPrecioReferencia());
 		return d;
 	}
 }

@@ -11,6 +11,7 @@ import co.edu.unbosque.bogoparche.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.bogoparche.model.Zona;
 import co.edu.unbosque.bogoparche.repository.LugarRepository;
 import co.edu.unbosque.bogoparche.repository.ZonaRepository;
+import co.edu.unbosque.bogoparche.util.UbicacionValidator;
 
 /**
  * Gestión de las zonas de la ciudad y su rango de gasto por persona.
@@ -158,6 +159,16 @@ public class ZonaService implements CRUDOperation<ZonaDTO> {
 		if (d.getGastoMinimo().compareTo(d.getGastoMaximo()) > 0) {
 			throw new DatosInvalidosException("El gasto mínimo no puede ser mayor que el gasto máximo");
 		}
+		if (d.getLatitudMinima() == null && d.getLatitudMaxima() == null) {
+			return;
+		}
+		if (d.getLatitudMinima() == null || d.getLatitudMaxima() == null
+				|| d.getLatitudMinima() >= d.getLatitudMaxima()
+				|| d.getLatitudMinima() < UbicacionValidator.LATITUD_MINIMA
+				|| d.getLatitudMaxima() > UbicacionValidator.LATITUD_MAXIMA) {
+			throw new DatosInvalidosException("Las latitudes de la zona deben ir juntas, la mínima menor que la máxima, "
+					+ "y estar entre " + UbicacionValidator.LATITUD_MINIMA + " y " + UbicacionValidator.LATITUD_MAXIMA);
+		}
 	}
 
 	/**
@@ -172,6 +183,8 @@ public class ZonaService implements CRUDOperation<ZonaDTO> {
 		z.setDescripcion(d.getDescripcion());
 		z.setGastoMinimo(d.getGastoMinimo());
 		z.setGastoMaximo(d.getGastoMaximo());
+		z.setLatitudMinima(d.getLatitudMinima());
+		z.setLatitudMaxima(d.getLatitudMaxima());
 	}
 
 	/**
@@ -187,6 +200,8 @@ public class ZonaService implements CRUDOperation<ZonaDTO> {
 		d.setDescripcion(z.getDescripcion());
 		d.setGastoMinimo(z.getGastoMinimo());
 		d.setGastoMaximo(z.getGastoMaximo());
+		d.setLatitudMinima(z.getLatitudMinima());
+		d.setLatitudMaxima(z.getLatitudMaxima());
 		return d;
 	}
 }

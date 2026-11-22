@@ -24,34 +24,52 @@ public interface AuditoriaRepository extends Repository<AuditoriaLog, Long> {
 	 */
 	AuditoriaLog save(AuditoriaLog log);
 
-	@Query("select a from AuditoriaLog a where (:usuario = '' or lower(a.usuarioNombre) like lower(concat('%', :usuario, '%'))) "
-			+ "and a.fecha >= :desde and a.fecha <= :hasta")
 	/**
-	 * Busca registros por parte del nombre de usuario y rango de fechas.
+	 * Busca registros en un rango de fechas.
 	 *
-	 * @param usuario  parte del nombre de usuario; vacío para todos
 	 * @param desde    fecha inicial
 	 * @param hasta    fecha final
 	 * @param pageable página y orden
 	 * @return página de registros
 	 */
-	Page<AuditoriaLog> buscar(@Param("usuario") String usuario, @Param("desde") LocalDateTime desde,
-			@Param("hasta") LocalDateTime hasta, Pageable pageable);
+	Page<AuditoriaLog> findByFechaBetween(LocalDateTime desde, LocalDateTime hasta, Pageable pageable);
 
-	@Query("select a from AuditoriaLog a where (:usuario = '' or lower(a.usuarioNombre) like lower(concat('%', :usuario, '%'))) "
-			+ "and a.accion = :accion and a.fecha >= :desde and a.fecha <= :hasta")
 	/**
-	 * Busca registros por parte del nombre de usuario, acción y rango de fechas.
+	 * Busca registros por parte del nombre de usuario y rango de fechas.
 	 *
-	 * @param usuario  parte del nombre de usuario; vacío para todos
+	 * @param usuario  parte del nombre de usuario
+	 * @param desde    fecha inicial
+	 * @param hasta    fecha final
+	 * @param pageable página y orden
+	 * @return página de registros
+	 */
+	Page<AuditoriaLog> findByUsuarioNombreContainingIgnoreCaseAndFechaBetween(String usuario, LocalDateTime desde,
+			LocalDateTime hasta, Pageable pageable);
+
+	/**
+	 * Busca registros por acción y rango de fechas.
+	 *
 	 * @param accion   acción
 	 * @param desde    fecha inicial
 	 * @param hasta    fecha final
 	 * @param pageable página y orden
 	 * @return página de registros
 	 */
-	Page<AuditoriaLog> buscarPorAccion(@Param("usuario") String usuario, @Param("accion") AccionAuditoria accion,
-			@Param("desde") LocalDateTime desde, @Param("hasta") LocalDateTime hasta, Pageable pageable);
+	Page<AuditoriaLog> findByAccionAndFechaBetween(AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta,
+			Pageable pageable);
+
+	/**
+	 * Busca registros por parte del nombre de usuario, acción y rango de fechas.
+	 *
+	 * @param usuario  parte del nombre de usuario
+	 * @param accion   acción
+	 * @param desde    fecha inicial
+	 * @param hasta    fecha final
+	 * @param pageable página y orden
+	 * @return página de registros
+	 */
+	Page<AuditoriaLog> findByUsuarioNombreContainingIgnoreCaseAndAccionAndFechaBetween(String usuario,
+			AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta, Pageable pageable);
 
 	/**
 	 * Lista los registros de un periodo en orden cronológico, para el reporte.

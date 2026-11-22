@@ -52,7 +52,7 @@ public class CorreoService {
 	public boolean enviarVerificacion(User usuario, String token) {
 		String cuerpo = "<p>Hola " + texto(usuario.getUsername()) + ",</p>"
 				+ "<p>Gracias por registrarte en BogoParche. Confirma tu correo para activar la cuenta:</p>"
-				+ boton(frontendUrl + "/verificar?token=" + token, "Verificar mi correo")
+				+ boton(frontendUrl + "/verify-email?token=" + token, "Verificar mi correo")
 				+ "<p>El enlace vence en " + horasVerificacion + " horas.</p>";
 		return enviar(usuario.getEmail(), "Verifica tu cuenta de BogoParche", cuerpo);
 	}

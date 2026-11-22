@@ -55,7 +55,7 @@ class CorreoServiceTest {
 		assertTrue(correoService.enviarVerificacion(u, "abc-123"));
 		MimeMessage m = enviado();
 		assertEquals("ana@example.com", m.getAllRecipients()[0].toString());
-		assertTrue(contenido(m).contains("http://localhost:4200/verificar?token=abc-123"));
+		assertTrue(contenido(m).contains("http://localhost:4200/verify-email?token=abc-123"));
 	}
 
 	/**
