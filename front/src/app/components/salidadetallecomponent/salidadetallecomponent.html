@@ -1,0 +1,144 @@
+<div class="container py-4">
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (aviso !== '') {
+    <div class="alert alert-success">{{ aviso }}</div>
+  }
+  @if (salida !== null) {
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+      <div>
+        <a routerLink="/salidas" class="small"
+          ><i class="fa-solid fa-arrow-left me-1"></i>Mis salidas</a
+        >
+        <h1 class="h3 mt-2 mb-1">{{ salida.titulo }}</h1>
+        <p class="text-suave mb-0">
+          {{ formato.fecha(salida.fechaHora) }} . organiza {{ salida.organizadorNombre }} .
+          {{ formato.pesos(salida.presupuesto) }} por persona
+        </p>
+      </div>
+      @if (esOrganizador() && vigente()) {
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-primary" (click)="agregarLugares()">
+            <i class="fa-solid fa-plus me-1"></i>Agregar lugares
+          </button>
+          <a [routerLink]="['/salidas/editar', salida.id]" class="btn btn-outline-primary">
+            <i class="fa-solid fa-pen me-1"></i>Editar
+          </a>
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            (click)="confirmarCancelacion = true"
+          >
+            <i class="fa-solid fa-ban me-1"></i>Cancelar salida
+          </button>
+        </div>
+      }
+    </div>
+    @if (confirmarCancelacion) {
+      <div
+        class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2"
+      >
+        <span>¿Seguro? La salida queda cancelada para todos los invitados.</span>
+        <span class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-danger" (click)="cancelar()">
+            Sí, cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            (click)="confirmarCancelacion = false"
+          >
+            No
+          </button>
+        </span>
+      </div>
+    }
+    @if (!vigente()) {
+      <div class="alert alert-secondary">
+        {{
+          salida.estado === 'CANCELADA'
+            ? 'Esta salida fue cancelada.'
+            : 'Esta salida ya se realizó.'
+        }}
+      </div>
+    }
+    @if (salida.descripcion) {
+      <p>{{ salida.descripcion }}</p>
+    }
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <h2 class="h5">Lugares propuestos</h2>
+        <ol class="list-group list-group-numbered mb-3">
+          @for (l of lugares; track l.id) {
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <div class="ms-2 me-auto">
+                <div class="fw-semibold">
+                  {{ l.lugarNombre }}
+                  @if (l.seleccionado) {
+                    <span class="badge text-bg-success ms-1">Destino</span>
+                  }
+                </div>
+                <span class="small text-suave">{{ l.categoria }}</span>
+              </div>
+              <div class="text-end">
+                <div>{{ formato.pesos(l.costoEstimadoPorPersona) }}</div>
+                @if (esOrganizador() && vigente() && !l.seleccionado) {
+                  <button
+                    type="button"
+                    class="btn btn-link btn-sm p-0 d-block"
+                    (click)="elegirDestino(l)"
+                  >
+                    Elegir como destino
+                  </button>
+                }
+              </div>
+            </li>
+          } @empty {
+            <li class="list-group-item text-suave small">Todavía no hay lugares propuestos.</li>
+          }
+        </ol>
+        @if (esOrganizador()) {
+          <h2 class="h5 mt-4">Invitados</h2>
+          @if (vigente()) {
+            <form class="mb-3" (ngSubmit)="invitar()" novalidate>
+              <div class="input-group has-validation">
+                <input
+                  id="correo"
+                  name="correo"
+                  type="email"
+                  class="form-control"
+                  [class.is-invalid]="errorCorreo !== ''"
+                  [(ngModel)]="correo"
+                  placeholder="correo de tu amigo"
+                />
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-paper-plane me-1"></i>Invitar
+                </button>
+                <div class="invalid-feedback">{{ errorCorreo }}</div>
+              </div>
+            </form>
+          }
+          <ul class="list-group">
+            @for (i of invitaciones; track i.id) {
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ i.emailInvitado }}</span>
+                <span
+                  class="badge"
+                  [class.text-bg-success]="i.estado === 'ACEPTADA'"
+                  [class.text-bg-secondary]="i.estado !== 'ACEPTADA'"
+                  >{{ formato.estado(i.estado) }}</span
+                >
+              </li>
+            } @empty {
+              <li class="list-group-item text-suave small">Aún no has invitado a nadie.</li>
+            }
+          </ul>
+        }
+      </div>
+      <div class="col-lg-6">
+        <app-mapacomponent [marcadores]="marcadores" alto="460px"></app-mapacomponent>
+      </div>
+    </div>
+  }
+</div>
