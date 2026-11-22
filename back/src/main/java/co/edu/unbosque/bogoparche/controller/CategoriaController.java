@@ -40,7 +40,7 @@ public class CategoriaController {
 	 * @param auth administrador autenticado
 	 * @return 201 con la categoría creada
 	 */
-	@PostMapping("/create")
+	@PostMapping("/createjson")
 	public ResponseEntity<CategoriaDTO> create(@Valid @RequestBody CategoriaDTO dto, Authentication auth) {
 		categoriaService.create(dto);
 		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Categoria",
@@ -77,7 +77,7 @@ public class CategoriaController {
 	 * @param auth administrador autenticado
 	 * @return 200 si la categoría se actualizó
 	 */
-	@PutMapping("/update/{id}")
+	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<String> update(@PathVariable Long id, @Valid @RequestBody CategoriaDTO dto,
 			Authentication auth) {
 		categoriaService.updateById(id, dto);

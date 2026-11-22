@@ -8,6 +8,14 @@ import co.edu.unbosque.bogoparche.model.Categoria;
  * Acceso a las categorías de planes.
  */
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
+	/**
+	 * Busca una categoría por nombre, sin distinguir mayúsculas.
+	 *
+	 * @param nombre nombre de la categoría
+	 * @return la categoría, o null si no existe
+	 */
+	Categoria findByNombreIgnoreCase(String nombre);
+
 
 	/**
 	 * Indica si ya existe una categoría con ese nombre, sin distinguir mayúsculas.

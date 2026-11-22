@@ -21,7 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import co.edu.unbosque.bogoparche.service.AuditoriaService;
 
 /**
  * Configuración de seguridad: autenticación sin estado con JWT, permisos por ruta y rol, y CORS
@@ -70,8 +69,7 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * Permite las peticiones del frontend, incluidas las cabeceras de ubicación que usa la auditoría,
-	 * y expone Content-Disposition para la descarga del reporte.
+	 * Permite las peticiones del frontend y expone Content-Disposition para la descarga del reporte.
 	 *
 	 * @param origin origen permitido (app.cors.allowed-origin)
 	 * @return configuración CORS
@@ -81,8 +79,7 @@ public class SecurityConfig {
 		CorsConfiguration c = new CorsConfiguration();
 		c.setAllowedOrigins(List.of(origin));
 		c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		c.setAllowedHeaders(List.of("Authorization", "Content-Type", AuditoriaService.CABECERA_LATITUD,
-				AuditoriaService.CABECERA_LONGITUD));
+		c.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		c.setExposedHeaders(List.of("Content-Disposition"));
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", c);

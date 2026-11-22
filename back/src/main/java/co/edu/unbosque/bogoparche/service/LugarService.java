@@ -1,6 +1,7 @@
 package co.edu.unbosque.bogoparche.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,16 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 	 * @return lugares que cumplen los filtros
 	 */
 	public List<LugarDTO> filtrar(Long zonaId, Long categoriaId) {
-		return lugarRepo.buscar(zonaId, categoriaId).stream().map(this::toDTO).toList();
+		List<LugarDTO> lista = new ArrayList<>();
+		for (Lugar l : lugarRepo.findAllByOrderByCostoEstimadoAscNombreAsc()) {
+			boolean zonaOk = zonaId == null || (l.getZona() != null && zonaId.equals(l.getZona().getId()));
+			boolean categoriaOk = categoriaId == null
+					|| (l.getCategoria() != null && categoriaId.equals(l.getCategoria().getId()));
+			if (zonaOk && categoriaOk) {
+				lista.add(toDTO(l));
+			}
+		}
+		return lista;
 	}
 
 	/**
@@ -82,8 +92,9 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 	 * @return lugares recomendados
 	 */
 	public List<LugarDTO> recomendar(BigDecimal presupuesto, Collection<Long> categoriaIds) {
-		List<Lugar> lugares = categoriaIds == null || categoriaIds.isEmpty() ? lugarRepo.alcanzables(presupuesto)
-				: lugarRepo.alcanzablesEnCategorias(presupuesto, categoriaIds);
+		List<Lugar> lugares = categoriaIds == null || categoriaIds.isEmpty() ? lugarRepo.findByCostoEstimadoLessThanEqualOrderByCostoEstimadoAscNombreAsc(presupuesto)
+				: lugarRepo.findByCostoEstimadoLessThanEqualAndCategoriaIdInOrderByCostoEstimadoAscNombreAsc(presupuesto,
+						categoriaIds);
 		return lugares.stream().map(this::toDTO).toList();
 	}
 
@@ -190,6 +201,7 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 		l.setLatitud(d.getLatitud());
 		l.setLongitud(d.getLongitud());
 		l.setCostoEstimado(d.getCostoEstimado());
+		l.setPrecioEstimado(false);
 	}
 
 	/**
@@ -215,6 +227,7 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 		d.setLatitud(l.getLatitud());
 		d.setLongitud(l.getLongitud());
 		d.setCostoEstimado(l.getCostoEstimado());
+		d.setPrecioEstimado(l.isPrecioEstimado());
 		return d;
 	}
 }

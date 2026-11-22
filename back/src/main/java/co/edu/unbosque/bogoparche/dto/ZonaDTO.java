@@ -24,4 +24,6 @@ public class ZonaDTO {
 	@NotNull(message = "El gasto máximo es obligatorio")
 	@PositiveOrZero(message = "El gasto máximo no puede ser negativo")
 	private BigDecimal gastoMaximo;
+	private Double latitudMinima;
+	private Double latitudMaxima;
 }
