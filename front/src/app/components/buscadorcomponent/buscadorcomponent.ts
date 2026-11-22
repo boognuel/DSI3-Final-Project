@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CategoriaModel } from '../../models/categoria.model';
 import { LugarModel } from '../../models/lugar.model';
 import { MarcadorModel } from '../../models/marcador.model';
@@ -8,6 +8,7 @@ import { CategoriaService } from '../../services/categoria.service';
 import { FormatoService } from '../../services/formato.service';
 import { MensajeService } from '../../services/mensaje.service';
 import { RecomendacionService } from '../../services/recomendacion.service';
+import { SalidaService } from '../../services/salida.service';
 import { SesionService } from '../../services/sesion.service';
 import { UbicacionService } from '../../services/ubicacion.service';
 
@@ -50,6 +51,8 @@ export class Buscadorcomponent implements OnInit {
   buscando: boolean = false;
   /** Presupuestos sugeridos. */
   sugeridos: number[] = [15000, 30000, 50000, 80000];
+  /** Salida a la que se agregan lugares, si se llegó desde una salida. */
+  salidaId: number | null = null;
 
   /**
    * Crea la instancia con sus dependencias.
@@ -59,8 +62,10 @@ export class Buscadorcomponent implements OnInit {
    * @param sesion Servicio de sesión
    * @param categoriaService Servicio de categorías
    * @param recomendacionService Servicio de búsqueda
+   * @param salidaService Servicio de salidas
    * @param mensajes Servicio de mensajes de error
    * @param route Ruta activa
+   * @param router Enrutador
    */
   constructor(
     public ubicacion: UbicacionService,
@@ -68,14 +73,20 @@ export class Buscadorcomponent implements OnInit {
     public sesion: SesionService,
     private categoriaService: CategoriaService,
     private recomendacionService: RecomendacionService,
+    private salidaService: SalidaService,
     private mensajes: MensajeService,
     private route: ActivatedRoute,
+    private router: Router,
   ) {}
 
   /**
    * Lee los parámetros de la URL, pide la ubicación y carga las categorías.
    */
   ngOnInit(): void {
+    const salida: number = Number(this.route.snapshot.queryParamMap.get('salida'));
+    if (Number.isInteger(salida) && salida > 0) {
+      this.salidaId = salida;
+    }
     const valor: string | null = this.route.snapshot.queryParamMap.get('presupuesto');
     if (typeof valor === 'string' && valor !== '') {
       const numero: number = Number(valor);
@@ -252,5 +263,37 @@ export class Buscadorcomponent implements OnInit {
       }
     }
     this.marcadores = lista;
+  }
+
+  /**
+   * Abre el formulario de una salida nueva con este lugar propuesto.
+   *
+   * @param l Lugar
+   */
+  armarSalida(l: LugarModel): void {
+    this.router.navigate(['/salidas/nueva'], {
+      queryParams: { lugar: l.id, nombre: l.nombre, presupuesto: this.presupuesto },
+    });
+  }
+
+  /**
+   * Propone el lugar en la salida desde la que se llegó.
+   *
+   * @param l Lugar
+   */
+  agregarASalida(l: LugarModel): void {
+    this.mensaje = '';
+    this.aviso = '';
+    if (this.salidaId === null || l.id === null) {
+      return;
+    }
+    this.salidaService.agregarLugar(this.salidaId, l.id).subscribe({
+      next: (texto: string) => {
+        this.aviso = texto;
+      },
+      error: (e: unknown) => {
+        this.mensaje = this.mensajes.deError(e);
+      },
+    });
   }
 }

@@ -132,6 +132,17 @@
                   }
                 </div>
               </div>
+              <div class="d-flex gap-2 mt-2">
+                @if (salidaId === null) {
+                  <button type="button" class="btn btn-sm btn-primary" (click)="armarSalida(l)">
+                    <i class="fa-solid fa-calendar-plus me-1"></i>Armar salida
+                  </button>
+                } @else {
+                  <button type="button" class="btn btn-sm btn-primary" (click)="agregarASalida(l)">
+                    <i class="fa-solid fa-plus me-1"></i>Agregar a la salida
+                  </button>
+                }
+              </div>
             </div>
           }
         </div>
