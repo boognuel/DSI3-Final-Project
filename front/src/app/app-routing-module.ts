@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { GuestGuard } from './guards/guest.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { Logincomponent } from './components/logincomponent/logincomponent';
 import { Registrocomponent } from './components/registrocomponent/registrocomponent';
 import { Verificaremailcomponent } from './components/verificaremailcomponent/verificaremailcomponent';
@@ -15,6 +16,7 @@ import { Salidadetallecomponent } from './components/salidadetallecomponent/sali
 import { Invitacioncomponent } from './components/invitacioncomponent/invitacioncomponent';
 import { Rutacomponent } from './components/rutacomponent/rutacomponent';
 import { Perfilcomponent } from './components/perfilcomponent/perfilcomponent';
+import { Adminusuarioscomponent } from './components/adminusuarioscomponent/adminusuarioscomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -34,6 +36,8 @@ const routes: Routes = [
   { path: 'invitacion', component: Invitacioncomponent },
   { path: 'ruta/:salidaId/:lugarId', component: Rutacomponent, canActivate: [AuthGuard] },
   { path: 'perfil', component: Perfilcomponent, canActivate: [AuthGuard] },
+  { path: 'admin/usuarios', component: Adminusuarioscomponent, canActivate: [AdminGuard] },
+  { path: 'admin', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
 

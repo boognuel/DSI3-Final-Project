@@ -22,6 +22,8 @@ import { Salidadetallecomponent } from './components/salidadetallecomponent/sali
 import { Invitacioncomponent } from './components/invitacioncomponent/invitacioncomponent';
 import { Rutacomponent } from './components/rutacomponent/rutacomponent';
 import { Perfilcomponent } from './components/perfilcomponent/perfilcomponent';
+import { Adminbarracomponent } from './components/adminbarracomponent/adminbarracomponent';
+import { Adminusuarioscomponent } from './components/adminusuarioscomponent/adminusuarioscomponent';
 
 /**
  * Módulo raíz: declara los componentes, importa el enrutamiento y los formularios, y registra el cliente HTTP con el interceptor de autenticación.
@@ -46,6 +48,8 @@ import { Perfilcomponent } from './components/perfilcomponent/perfilcomponent';
     Invitacioncomponent,
     Rutacomponent,
     Perfilcomponent,
+    Adminbarracomponent,
+    Adminusuarioscomponent,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [
