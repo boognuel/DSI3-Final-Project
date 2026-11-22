@@ -4,14 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import co.edu.unbosque.bogoparche.model.AccionAuditoria;
 import co.edu.unbosque.bogoparche.model.AuditoriaLog;
 import co.edu.unbosque.bogoparche.model.EstadoInvitacion;
 import co.edu.unbosque.bogoparche.model.Salida;
@@ -20,7 +19,6 @@ import co.edu.unbosque.bogoparche.repository.AuditoriaRepository;
 import co.edu.unbosque.bogoparche.repository.InvitacionRepository;
 import co.edu.unbosque.bogoparche.repository.SalidaRepository;
 import co.edu.unbosque.bogoparche.repository.UserRepository;
-import co.edu.unbosque.bogoparche.util.MapaUtil;
 
 /**
  * Genera el reporte en Excel que descarga el administrador.
@@ -54,8 +52,11 @@ public class ReporteService {
 			fila(resumen, 0, "Periodo", desde.format(FORMATO_FECHA) + " a " + hasta.format(FORMATO_FECHA));
 			fila(resumen, 2, "Acción", "Total");
 			int n = 3;
-			for (Object[] f : auditoriaRepo.contarPorAccion(desde, hasta)) {
-				fila(resumen, n++, f[0], f[1]);
+			for (AccionAuditoria accion : AccionAuditoria.values()) {
+				long total = auditoriaRepo.countByAccionAndFechaBetween(accion, desde, hasta);
+				if (total > 0) {
+					fila(resumen, n++, accion, total);
+				}
 			}
 
 			Sheet usuarios = wb.createSheet("Usuarios");
@@ -68,13 +69,11 @@ public class ReporteService {
 
 			Sheet auditoria = wb.createSheet("Auditoría");
 			fila(auditoria, 0, "Fecha", "Usuario", "Rol", "Acción", "Entidad", "Entidad id", "Resultado", "IP",
-					"Latitud", "Longitud", "Ubicación", "Detalle");
+					"Detalle");
 			n = 1;
 			for (AuditoriaLog a : auditoriaRepo.findByFechaBetweenOrderByFechaAsc(desde, hasta)) {
-				Row r = fila(auditoria, n++, a.getFecha(), a.getUsuarioNombre(), a.getRolUsuario(), a.getAccion(),
-						a.getEntidad(), a.getEntidadId(), a.getResultado(), a.getIpOrigen(), a.getLatitud(),
-						a.getLongitud(), null, a.getDetalle());
-				enlazarMapa(wb, r.getCell(10), MapaUtil.enlaceGoogleMaps(a.getLatitud(), a.getLongitud()));
+				fila(auditoria, n++, a.getFecha(), a.getUsuarioNombre(), a.getRolUsuario(), a.getAccion(),
+						a.getEntidad(), a.getEntidadId(), a.getResultado(), a.getIpOrigen(), a.getDetalle());
 			}
 
 			Sheet salidas = wb.createSheet("Salidas");
@@ -113,22 +112,5 @@ public class ReporteService {
 			}
 		}
 		return row;
-	}
-
-	/**
-	 * Pone en la celda un enlace a Google Maps con el texto "Ver en Google Maps".
-	 *
-	 * @param wb     libro de Excel
-	 * @param celda  celda donde va el enlace
-	 * @param enlace URL del punto, o nula si el registro no tiene ubicación
-	 */
-	private void enlazarMapa(XSSFWorkbook wb, Cell celda, String enlace) {
-		if (enlace == null) {
-			return;
-		}
-		Hyperlink link = wb.getCreationHelper().createHyperlink(HyperlinkType.URL);
-		link.setAddress(enlace);
-		celda.setHyperlink(link);
-		celda.setCellValue("Ver en Google Maps");
 	}
 }

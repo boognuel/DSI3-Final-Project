@@ -26,7 +26,6 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 	 */
 	List<Lugar> findByCategoriaIdAndPrecioEstimadoTrue(Long categoriaId);
 
-
 	/**
 	 * Lista todos los lugares, del más económico al más costoso.
 	 *
@@ -54,13 +53,12 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 			BigDecimal presupuesto, Collection<Long> categoriaIds);
 
 	/**
-	 * Cuenta los lugares de cada categoría, incluidas las categorías sin lugares.
+	 * Cuenta los lugares de una categoría.
 	 *
-	 * @return filas con el nombre de la categoría y su número de lugares, en orden alfabético
+	 * @param categoriaId identificador de la categoría
+	 * @return número de lugares
 	 */
-	@Query("select c.nombre, count(l) from Categoria c left join Lugar l on l.categoria = c "
-			+ "group by c.nombre order by c.nombre")
-	List<Object[]> contarPorCategoria();
+	long countByCategoriaId(Long categoriaId);
 
 	/**
 	 * Indica si hay lugares en la zona.

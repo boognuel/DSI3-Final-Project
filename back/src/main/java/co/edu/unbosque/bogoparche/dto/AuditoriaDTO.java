@@ -3,7 +3,6 @@ package co.edu.unbosque.bogoparche.dto;
 import java.time.LocalDateTime;
 import co.edu.unbosque.bogoparche.model.AccionAuditoria;
 import co.edu.unbosque.bogoparche.model.ResultadoAuditoria;
-import co.edu.unbosque.bogoparche.util.MapaUtil;
 import lombok.Data;
 
 /**
@@ -24,13 +23,4 @@ public class AuditoriaDTO {
 	private String ipOrigen;
 	private String userAgent;
 	private ResultadoAuditoria resultado;
-
-	/**
-	 * Enlace de Google Maps con la ubicación desde donde se hizo la acción.
-	 *
-	 * @return enlace al punto, o {@code null} si el registro no tiene ubicación
-	 */
-	public String getMapaUrl() {
-		return MapaUtil.enlaceGoogleMaps(latitud, longitud);
-	}
 }

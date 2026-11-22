@@ -3,7 +3,6 @@ package co.edu.unbosque.bogoparche.repository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import co.edu.unbosque.bogoparche.model.User;
 
 /**
@@ -49,14 +48,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	 * @return usuarios ordenados por identificador
 	 */
 	List<User> findAllByOrderByIdAsc();
-
-	/**
-	 * Cuenta los usuarios registrados en cada mes.
-	 *
-	 * @return filas con año, mes y número de usuarios, de la más antigua a la más reciente
-	 */
-	@Query("select year(u.fechaCreacion), month(u.fechaCreacion), count(u) from User u where u.fechaCreacion is not null "
-			+ "group by year(u.fechaCreacion), month(u.fechaCreacion) "
-			+ "order by year(u.fechaCreacion), month(u.fechaCreacion)")
-	List<Object[]> contarPorMes();
 }

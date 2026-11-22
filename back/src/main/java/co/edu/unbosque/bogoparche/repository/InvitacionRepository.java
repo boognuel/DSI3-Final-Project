@@ -3,7 +3,6 @@ package co.edu.unbosque.bogoparche.repository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import co.edu.unbosque.bogoparche.model.EstadoInvitacion;
 import co.edu.unbosque.bogoparche.model.Invitacion;
 
@@ -65,10 +64,10 @@ public interface InvitacionRepository extends JpaRepository<Invitacion, Long> {
 	long countBySalidaIdAndEstado(Long salidaId, EstadoInvitacion estado);
 
 	/**
-	 * Cuenta las invitaciones de cada estado.
+	 * Cuenta las invitaciones en un estado.
 	 *
-	 * @return filas con el estado y el número de invitaciones
+	 * @param estado estado de la invitación
+	 * @return número de invitaciones
 	 */
-	@Query("select i.estado, count(i) from Invitacion i group by i.estado")
-	List<Object[]> contarPorEstado();
+	long countByEstado(EstadoInvitacion estado);
 }

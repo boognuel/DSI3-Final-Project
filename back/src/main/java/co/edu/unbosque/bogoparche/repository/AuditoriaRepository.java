@@ -4,9 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.query.Param;
 import co.edu.unbosque.bogoparche.model.AccionAuditoria;
 import co.edu.unbosque.bogoparche.model.AuditoriaLog;
 
@@ -81,12 +79,12 @@ public interface AuditoriaRepository extends Repository<AuditoriaLog, Long> {
 	List<AuditoriaLog> findByFechaBetweenOrderByFechaAsc(LocalDateTime desde, LocalDateTime hasta);
 
 	/**
-	 * Cuenta los registros de un periodo agrupados por acción.
+	 * Cuenta los registros de una acción en un periodo.
 	 *
-	 * @param desde fecha inicial
-	 * @param hasta fecha final
-	 * @return pares [acción, cantidad]
+	 * @param accion acción
+	 * @param desde  fecha inicial
+	 * @param hasta  fecha final
+	 * @return número de registros
 	 */
-	@Query("select a.accion, count(a) from AuditoriaLog a where a.fecha between :desde and :hasta group by a.accion")
-	List<Object[]> contarPorAccion(@Param("desde") LocalDateTime desde, @Param("hasta") LocalDateTime hasta);
+	long countByAccionAndFechaBetween(AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta);
 }
