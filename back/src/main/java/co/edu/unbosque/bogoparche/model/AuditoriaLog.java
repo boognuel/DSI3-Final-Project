@@ -8,7 +8,7 @@ import lombok.Setter;
 
 /**
  * Registro de auditoría. Se crea automáticamente en cada acción relevante del sistema y guarda la
- * fecha, quién la hizo, qué hizo, el resultado y desde dónde (IP, navegador y coordenadas).
+ * fecha, quién la hizo, qué hizo, el resultado y desde dónde (IP y navegador).
  */
 @Entity
 @Table(name = "auditoria_log", indexes = { @Index(columnList = "fecha"), @Index(columnList = "accion") })
@@ -32,9 +32,6 @@ public class AuditoriaLog {
 	private String detalle;
 	private String ipOrigen;
 	private String userAgent;
-	// Ubicación que reporta el navegador; queda nula si el usuario no dio permiso
-	private Double latitud;
-	private Double longitud;
 	@Enumerated(EnumType.STRING)
 	private ResultadoAuditoria resultado;
 }
