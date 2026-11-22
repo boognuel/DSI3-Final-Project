@@ -12,6 +12,7 @@ import { Buscadorcomponent } from './components/buscadorcomponent/buscadorcompon
 import { Salidascomponent } from './components/salidascomponent/salidascomponent';
 import { Salidaformcomponent } from './components/salidaformcomponent/salidaformcomponent';
 import { Salidadetallecomponent } from './components/salidadetallecomponent/salidadetallecomponent';
+import { Invitacioncomponent } from './components/invitacioncomponent/invitacioncomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -28,6 +29,7 @@ const routes: Routes = [
   { path: 'salidas/nueva', component: Salidaformcomponent, canActivate: [AuthGuard] },
   { path: 'salidas/editar/:id', component: Salidaformcomponent, canActivate: [AuthGuard] },
   { path: 'salidas/:id', component: Salidadetallecomponent, canActivate: [AuthGuard] },
+  { path: 'invitacion', component: Invitacioncomponent },
   { path: '**', redirectTo: '' },
 ];
 
