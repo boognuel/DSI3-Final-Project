@@ -173,7 +173,8 @@ public class UserService implements CRUDOperation<UserDTO> {
 				|| data.getEmail().isBlank()) {
 			throw new DatosInvalidosException("El nombre de usuario y el correo son obligatorios");
 		}
-		if (!data.getEmail().trim().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+		String email = data.getEmail().trim();
+		if (email.length() > 150 || !email.matches("^[^@\\s]+@[^@\\s.]+(\\.[^@\\s.]+)+$")) {
 			throw new DatosInvalidosException("El correo no es válido");
 		}
 		UserDTO cambios = new UserDTO();
