@@ -10,6 +10,7 @@ import co.edu.unbosque.bogoparche.dto.SalidaDTO;
 import co.edu.unbosque.bogoparche.exception.DatosInvalidosException;
 import co.edu.unbosque.bogoparche.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.bogoparche.model.EstadoInvitacion;
+import co.edu.unbosque.bogoparche.model.Invitacion;
 import co.edu.unbosque.bogoparche.model.EstadoSalida;
 import co.edu.unbosque.bogoparche.model.Salida;
 import co.edu.unbosque.bogoparche.model.User;
@@ -155,8 +156,11 @@ public class SalidaService implements CRUDOperation<SalidaDTO> {
 	public List<SalidaDTO> getMisSalidas(User u) {
 		Map<Long, Salida> todas = new LinkedHashMap<>();
 		salidaRepo.findByOrganizadorId(u.getId()).forEach(s -> todas.put(s.getId(), s));
-		salidaRepo.findByInvitadoConEstado(u.getEmail(), EstadoInvitacion.ACEPTADA)
-				.forEach(s -> todas.putIfAbsent(s.getId(), s));
+		for (Invitacion i : invitacionRepo.findByEmailInvitadoIgnoreCase(u.getEmail())) {
+			if (i.getEstado() == EstadoInvitacion.ACEPTADA) {
+				todas.putIfAbsent(i.getSalida().getId(), i.getSalida());
+			}
+		}
 		List<SalidaDTO> lista = new ArrayList<>();
 		todas.values().forEach(s -> lista.add(toDTO(s)));
 		return lista;
