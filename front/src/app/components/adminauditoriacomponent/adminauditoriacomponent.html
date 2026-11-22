@@ -1,0 +1,132 @@
+<app-adminbarracomponent></app-adminbarracomponent>
+<div class="container py-4">
+  <h1 class="h3 mb-3">Auditoría</h1>
+  <form class="row g-2 align-items-end mb-3" (ngSubmit)="buscar(0)" novalidate>
+    <div class="col-md-3">
+      <label for="a_usuario" class="form-label small mb-1">Usuario</label>
+      <input
+        id="a_usuario"
+        name="usuario"
+        class="form-control"
+        [class.is-invalid]="errores['usuario']"
+        [(ngModel)]="usuario"
+        placeholder="parte del nombre"
+      />
+      <div class="invalid-feedback">{{ errores['usuario'] }}</div>
+    </div>
+    <div class="col-md-3">
+      <label for="a_accion" class="form-label small mb-1">Acción</label>
+      <select
+        id="a_accion"
+        name="accion"
+        class="form-select"
+        [class.is-invalid]="errores['accion']"
+        [(ngModel)]="accion"
+      >
+        <option value="">Todas</option>
+        @for (a of acciones; track a) {
+          <option [value]="a">{{ a }}</option>
+        }
+      </select>
+      <div class="invalid-feedback">{{ errores['accion'] }}</div>
+    </div>
+    <div class="col-md-2">
+      <label for="a_desde" class="form-label small mb-1">Desde</label>
+      <input
+        id="a_desde"
+        name="desde"
+        type="date"
+        class="form-control"
+        [class.is-invalid]="errores['desde']"
+        [(ngModel)]="desde"
+      />
+      <div class="invalid-feedback">{{ errores['desde'] }}</div>
+    </div>
+    <div class="col-md-2">
+      <label for="a_hasta" class="form-label small mb-1">Hasta</label>
+      <input
+        id="a_hasta"
+        name="hasta"
+        type="date"
+        class="form-control"
+        [class.is-invalid]="errores['hasta']"
+        [(ngModel)]="hasta"
+      />
+      <div class="invalid-feedback">{{ errores['hasta'] }}</div>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-filter me-1"></i>Filtrar
+      </button>
+    </div>
+  </form>
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (pagina !== null) {
+    <div class="tarjeta table-responsive">
+      <table class="table table-sm align-middle mb-0 tabla-admin">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Resultado</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of pagina.content; track a.id) {
+            <tr>
+              <td class="small text-nowrap">{{ formato.fecha(a.fecha) }}</td>
+              <td class="small">
+                {{ a.usuarioNombre || 'Anónimo' }}
+                <span class="text-suave">{{ a.rolUsuario || '' }}</span>
+              </td>
+              <td class="small font-monospace">{{ a.accion }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.text-bg-success]="a.resultado === 'EXITO'"
+                  [class.text-bg-danger]="a.resultado !== 'EXITO'"
+                  >{{ a.resultado }}</span
+                >
+              </td>
+              <td class="small">{{ a.detalle || '' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center text-suave py-4">
+                No hay registros en ese periodo.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-2 small">
+      <span
+        >{{ pagina.totalElements }} registros . página {{ pagina.page + 1 }} de
+        {{ pagina.totalPages || 1 }}</span
+      >
+      <span class="btn-group">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary"
+          [disabled]="pagina.page === 0"
+          (click)="buscar(pagina.page - 1)"
+        >
+          Anterior
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary"
+          [disabled]="pagina.page + 1 >= pagina.totalPages"
+          (click)="buscar(pagina.page + 1)"
+        >
+          Siguiente
+        </button>
+      </span>
+    </div>
+  }
+</div>
