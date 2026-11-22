@@ -1,0 +1,188 @@
+<section class="hero py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 text-center animate__animated animate__fadeIn">
+        <p class="text-white-50 mb-2">Hola, {{ sesion.usuario() }}</p>
+        <h1 class="text-white mb-4">¿Cuánto tienes para salir hoy?</h1>
+        <form (ngSubmit)="buscar()" novalidate>
+          <div class="presupuesto mx-auto">
+            <div class="input-group input-group-lg has-validation">
+              <span class="input-group-text">$</span>
+              <input
+                id="presupuesto"
+                name="presupuesto"
+                type="number"
+                min="0"
+                step="1000"
+                class="form-control text-center fw-bold"
+                [class.is-invalid]="errorPresupuesto !== ''"
+                [(ngModel)]="presupuesto"
+                placeholder="30000"
+                aria-label="Presupuesto por persona"
+              />
+              <button type="submit" class="btn btn-acento px-4" [disabled]="buscando">
+                @if (buscando) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Buscar planes
+              </button>
+              <div class="invalid-feedback text-white">{{ errorPresupuesto }}</div>
+            </div>
+            <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
+              @for (s of sugeridos; track s) {
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-light rounded-pill"
+                  (click)="usarSugerido(s)"
+                >
+                  {{ formato.pesos(s) }}
+                </button>
+              }
+            </div>
+          </div>
+          <div class="d-flex justify-content-center flex-wrap gap-2 mt-4">
+            @for (c of categorias; track c.id) {
+              <button
+                type="button"
+                class="btn btn-sm rounded-pill chip"
+                [class.activo]="estaElegida(c.id)"
+                (click)="alternar(c.id)"
+              >
+                {{ c.nombre }}
+              </button>
+            }
+          </div>
+          <p class="small text-white-50 mt-2 mb-0">Sin categorías elegidas buscamos en todas.</p>
+          <div class="d-flex justify-content-center mt-3">
+            <select
+              id="orden"
+              name="orden"
+              class="form-select form-select-sm w-auto"
+              [(ngModel)]="orden"
+              (ngModelChange)="ordenar()"
+              aria-label="Orden"
+            >
+              <option value="PRECIO">Más barato primero</option>
+              <option value="DISTANCIA">Más cerca primero</option>
+            </select>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container py-4">
+  @if (mensajeUbicacion !== '') {
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+      <span><i class="fa-solid fa-location-crosshairs me-2"></i>{{ mensajeUbicacion }}</span>
+      <button type="button" class="btn btn-sm btn-outline-dark" (click)="actualizarUbicacion()">
+        Actualizar ubicación
+      </button>
+    </div>
+  }
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (aviso !== '') {
+    <div class="alert alert-success">{{ aviso }}</div>
+  }
+  @if (ubicacion.fueraDeZona()) {
+    <div class="alert alert-warning">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i>Tu ubicación está fuera de la zona que
+      cubre la app, entre la calle 75 y la calle 222. Los planes pueden quedarte muy lejos.
+    </div>
+  }
+  @if (respuesta !== null) {
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <h2 class="h4 mb-3">{{ lugares.length }} planes para ti</h2>
+        @if (lugares.length === 0) {
+          <div class="tarjeta p-4 text-center text-suave">
+            <i class="fa-solid fa-magnifying-glass fa-2x mb-2"></i>
+            <p class="mb-0">
+              No encontramos planes con ese presupuesto. Prueba con otras categorías.
+            </p>
+          </div>
+        }
+        <div class="lista">
+          @for (l of lugares; track l.id) {
+            <div
+              class="tarjeta p-3 mb-3 resultado"
+              [class.elegido]="elegido === l.id"
+              tabindex="0"
+              (click)="elegir(l.id)"
+              (keydown.enter)="elegir(l.id)"
+            >
+              <div class="d-flex justify-content-between">
+                <div>
+                  <span class="badge badge-acento mb-1">{{ l.categoriaNombre }}</span>
+                  <h3 class="h6 mb-1">{{ l.nombre }}</h3>
+                  <p class="small text-suave mb-0">
+                    {{ l.direccion }} . {{ l.zonaNombre }}
+                    @if (distancia(l) !== null) {
+                      . {{ formato.distancia(distancia(l)) }}
+                    }
+                  </p>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold">{{ formato.pesos(l.costoEstimado) }}</div>
+                  @if (l.precioEstimado) {
+                    <div class="small text-suave">aprox.</div>
+                  }
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-2">
+                @if (salidaId === null) {
+                  <button type="button" class="btn btn-sm btn-primary" (click)="armarSalida(l)">
+                    <i class="fa-solid fa-calendar-plus me-1"></i>Armar salida
+                  </button>
+                } @else {
+                  <button type="button" class="btn btn-sm btn-primary" (click)="agregarASalida(l)">
+                    <i class="fa-solid fa-plus me-1"></i>Agregar a la salida
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="mapa-fijo">
+          <app-mapacomponent
+            [latitud]="ubicacion.latitud"
+            [longitud]="ubicacion.longitud"
+            [marcadores]="marcadores"
+            alto="520px"
+          ></app-mapacomponent>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="row g-4 mt-1">
+      <div class="col-md-4">
+        <div class="tarjeta p-4 h-100">
+          <i class="fa-solid fa-wallet fa-lg text-acento mb-2"></i>
+          <h3 class="h6">Presupuesto real</h3>
+          <p class="small text-suave mb-0">
+            Cada lugar tiene su gasto por persona; si es aproximado, lo indicamos.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="tarjeta p-4 h-100">
+          <i class="fa-solid fa-map-location-dot fa-lg text-acento mb-2"></i>
+          <h3 class="h6">Cerca de ti</h3>
+          <p class="small text-suave mb-0">Lugares de OpenStreetMap entre la calle 75 y la 222.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="tarjeta p-4 h-100">
+          <i class="fa-solid fa-user-group fa-lg text-acento mb-2"></i>
+          <h3 class="h6">Con tu parche</h3>
+          <p class="small text-suave mb-0">Arma la salida e invita a tus amigos por correo.</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

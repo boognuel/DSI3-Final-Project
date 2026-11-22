@@ -1,0 +1,161 @@
+<app-adminbarracomponent></app-adminbarracomponent>
+<div class="container py-4">
+  <h1 class="h3 mb-3">Zonas</h1>
+  <p class="text-suave small">
+    Cada zona tiene el rango de gasto por persona de sus lugares. Las latitudes indican la franja de
+    calles que cubre y sirven para cargar lugares desde OpenStreetMap.
+  </p>
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (aviso !== '') {
+    <div class="alert alert-success">{{ aviso }}</div>
+  }
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="tarjeta table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Zona</th>
+              <th>Gasto por persona</th>
+              <th>Latitudes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (z of zonas; track z.id) {
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ z.nombre }}</div>
+                  <div class="small text-suave">{{ z.descripcion }}</div>
+                </td>
+                <td>{{ formato.pesos(z.gastoMinimo) }} a {{ formato.pesos(z.gastoMaximo) }}</td>
+                <td class="small">
+                  @if (z.latitudMinima !== null) {
+                    {{ z.latitudMinima }} a {{ z.latitudMaxima }}
+                  } @else {
+                    <span class="text-suave">Sin definir</span>
+                  }
+                </td>
+                <td class="text-end text-nowrap">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary me-1"
+                    (click)="editar(z)"
+                    aria-label="Editar"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="eliminar(z)"
+                    aria-label="Eliminar"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center text-suave py-4">No hay zonas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="tarjeta p-4">
+        <h2 class="h5 mb-3">{{ editando === null ? 'Nueva zona' : 'Editar zona' }}</h2>
+        <form (ngSubmit)="guardar()" novalidate>
+          <div class="mb-2">
+            <label for="z_nombre" class="form-label">Nombre</label>
+            <input
+              id="z_nombre"
+              name="nombre"
+              class="form-control"
+              [class.is-invalid]="errores['nombre']"
+              [(ngModel)]="nombre"
+              placeholder="Calle 127 a calle 170"
+            />
+            <div class="invalid-feedback">{{ errores['nombre'] }}</div>
+          </div>
+          <div class="mb-2">
+            <label for="z_descripcion" class="form-label">Descripción</label>
+            <input
+              id="z_descripcion"
+              name="descripcion"
+              class="form-control"
+              [(ngModel)]="descripcion"
+              placeholder="Cedritos, Mazurén y alrededores"
+            />
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label for="z_gmin" class="form-label">Gasto mínimo</label>
+              <input
+                id="z_gmin"
+                name="gastoMinimo"
+                type="number"
+                min="0"
+                class="form-control"
+                [class.is-invalid]="errores['gastoMinimo']"
+                [(ngModel)]="gastoMinimo"
+              />
+              <div class="invalid-feedback">{{ errores['gastoMinimo'] }}</div>
+            </div>
+            <div class="col-6">
+              <label for="z_gmax" class="form-label">Gasto máximo</label>
+              <input
+                id="z_gmax"
+                name="gastoMaximo"
+                type="number"
+                min="0"
+                class="form-control"
+                [class.is-invalid]="errores['gastoMaximo']"
+                [(ngModel)]="gastoMaximo"
+              />
+              <div class="invalid-feedback">{{ errores['gastoMaximo'] }}</div>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="z_min" class="form-label">Latitud mínima</label>
+              <input
+                id="z_min"
+                name="latitudMinima"
+                type="number"
+                step="0.001"
+                class="form-control"
+                [class.is-invalid]="errores['latitudMinima']"
+                [(ngModel)]="latitudMinima"
+              />
+              <div class="invalid-feedback">{{ errores['latitudMinima'] }}</div>
+            </div>
+            <div class="col-6">
+              <label for="z_max" class="form-label">Latitud máxima</label>
+              <input
+                id="z_max"
+                name="latitudMaxima"
+                type="number"
+                step="0.001"
+                class="form-control"
+                [class.is-invalid]="errores['latitudMaxima']"
+                [(ngModel)]="latitudMaxima"
+              />
+              <div class="invalid-feedback">{{ errores['latitudMaxima'] }}</div>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="nuevo()">
+              Limpiar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

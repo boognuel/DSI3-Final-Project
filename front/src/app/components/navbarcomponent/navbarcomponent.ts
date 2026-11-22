@@ -1,30 +1,52 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { Authservice } from '../../services/authservice';
+import { SesionService } from '../../services/sesion.service';
 
+/**
+ * Barra de navegación con los enlaces según la sesión y el rol.
+ */
 @Component({
   selector: 'app-navbarcomponent',
   standalone: false,
-  templateUrl: './navbarcomponent.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './navbarcomponent.css',
+  templateUrl: './navbarcomponent.html',
 })
 export class Navbarcomponent {
-  auth = inject(Authservice);
-  private router = inject(Router);
+  /** Indica si el menú está abierto en pantallas pequeñas. */
+  abierto: boolean = false;
 
-  abierto = signal(false);
+  /**
+   * Crea la instancia con sus dependencias.
+   *
+   * @param sesion Servicio de sesión
+   * @param router Enrutador
+   */
+  constructor(
+    public sesion: SesionService,
+    private router: Router,
+  ) {}
 
+  /**
+   * Abre o cierra el menú en pantallas pequeñas.
+   */
   alternar(): void {
-    this.abierto.update((v) => !v);
+    this.abierto = !this.abierto;
   }
 
+  /**
+   * Cierra el menú en pantallas pequeñas.
+   */
   cerrar(): void {
-    this.abierto.set(false);
+    this.abierto = false;
   }
 
+  /**
+   * Cierra la sesión y vuelve al inicio de sesión.
+   */
   salir(): void {
-    this.auth.logout();
     this.cerrar();
-    this.router.navigate(['/']);
+    this.sesion.cerrar();
+    this.router.navigate(['/login']);
   }
 }

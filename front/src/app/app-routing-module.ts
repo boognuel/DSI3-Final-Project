@@ -1,23 +1,61 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { guestGuard } from './guards/authguard';
-import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
+import { AuthGuard } from './guards/auth.guard';
+import { GuestGuard } from './guards/guest.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { Logincomponent } from './components/logincomponent/logincomponent';
 import { Registrocomponent } from './components/registrocomponent/registrocomponent';
 import { Verificaremailcomponent } from './components/verificaremailcomponent/verificaremailcomponent';
 import { Olvidopasswordcomponent } from './components/olvidopasswordcomponent/olvidopasswordcomponent';
 import { Restablecerpasswordcomponent } from './components/restablecerpasswordcomponent/restablecerpasswordcomponent';
+import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
+import { Buscadorcomponent } from './components/buscadorcomponent/buscadorcomponent';
+import { Salidascomponent } from './components/salidascomponent/salidascomponent';
+import { Salidaformcomponent } from './components/salidaformcomponent/salidaformcomponent';
+import { Salidadetallecomponent } from './components/salidadetallecomponent/salidadetallecomponent';
+import { Invitacioncomponent } from './components/invitacioncomponent/invitacioncomponent';
+import { Rutacomponent } from './components/rutacomponent/rutacomponent';
+import { Perfilcomponent } from './components/perfilcomponent/perfilcomponent';
+import { Adminusuarioscomponent } from './components/adminusuarioscomponent/adminusuarioscomponent';
+import { Admincategoriascomponent } from './components/admincategoriascomponent/admincategoriascomponent';
+import { Adminzonascomponent } from './components/adminzonascomponent/adminzonascomponent';
+import { Adminlugarescomponent } from './components/adminlugarescomponent/adminlugarescomponent';
+import { Adminsalidascomponent } from './components/adminsalidascomponent/adminsalidascomponent';
+import { Adminestadisticascomponent } from './components/adminestadisticascomponent/adminestadisticascomponent';
+import { Adminauditoriacomponent } from './components/adminauditoriacomponent/adminauditoriacomponent';
 
+/**
+ * Rutas de la aplicación con su componente y su guarda.
+ */
 const routes: Routes = [
-  { path: '', component: Iniciocomponent },
-  { path: 'login', component: Logincomponent, canActivate: [guestGuard] },
-  { path: 'register', component: Registrocomponent, canActivate: [guestGuard] },
+  { path: 'login', component: Logincomponent, canActivate: [GuestGuard] },
+  { path: 'register', component: Registrocomponent, canActivate: [GuestGuard] },
   { path: 'verify-email', component: Verificaremailcomponent },
-  { path: 'forgot-password', component: Olvidopasswordcomponent, canActivate: [guestGuard] },
+  { path: 'forgot-password', component: Olvidopasswordcomponent, canActivate: [GuestGuard] },
   { path: 'reset-password', component: Restablecerpasswordcomponent },
+  { path: '', component: Iniciocomponent },
+  { path: 'planes', component: Buscadorcomponent, canActivate: [AuthGuard] },
+  { path: 'salidas', component: Salidascomponent, canActivate: [AuthGuard] },
+  { path: 'salidas/nueva', component: Salidaformcomponent, canActivate: [AuthGuard] },
+  { path: 'salidas/editar/:id', component: Salidaformcomponent, canActivate: [AuthGuard] },
+  { path: 'salidas/:id', component: Salidadetallecomponent, canActivate: [AuthGuard] },
+  { path: 'invitacion', component: Invitacioncomponent },
+  { path: 'ruta/:salidaId/:lugarId', component: Rutacomponent, canActivate: [AuthGuard] },
+  { path: 'perfil', component: Perfilcomponent, canActivate: [AuthGuard] },
+  { path: 'admin/usuarios', component: Adminusuarioscomponent, canActivate: [AdminGuard] },
+  { path: 'admin/categorias', component: Admincategoriascomponent, canActivate: [AdminGuard] },
+  { path: 'admin/zonas', component: Adminzonascomponent, canActivate: [AdminGuard] },
+  { path: 'admin/lugares', component: Adminlugarescomponent, canActivate: [AdminGuard] },
+  { path: 'admin/salidas', component: Adminsalidascomponent, canActivate: [AdminGuard] },
+  { path: 'admin/estadisticas', component: Adminestadisticascomponent, canActivate: [AdminGuard] },
+  { path: 'admin/auditoria', component: Adminauditoriacomponent, canActivate: [AdminGuard] },
+  { path: 'admin', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
 
+/**
+ * Módulo de enrutamiento: asocia cada ruta con su componente y su guarda.
+ */
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, {
@@ -25,6 +63,6 @@ const routes: Routes = [
       scrollPositionRestoration: 'enabled',
     }),
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

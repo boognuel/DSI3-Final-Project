@@ -1,0 +1,176 @@
+<app-adminbarracomponent></app-adminbarracomponent>
+<div class="container py-4">
+  <h1 class="h3 mb-3">Usuarios</h1>
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (aviso !== '') {
+    <div class="alert alert-success">{{ aviso }}</div>
+  }
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <input
+        id="filtro"
+        name="filtro"
+        type="search"
+        class="form-control mb-3"
+        [(ngModel)]="filtro"
+        placeholder="Buscar por usuario o correo"
+        aria-label="Buscar usuarios"
+      />
+      <div class="tarjeta table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla-admin">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of filtrados(); track u.id) {
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ u.username }}</div>
+                  <div class="small text-suave">{{ u.email }}</div>
+                </td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.bg-marca]="u.role === 'ADMIN'"
+                    [class.text-bg-light]="u.role !== 'ADMIN'"
+                    >{{ u.role }}</span
+                  >
+                </td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.text-bg-success]="u.enabled"
+                    [class.text-bg-secondary]="!u.enabled"
+                    >{{ u.enabled ? 'Habilitada' : 'Deshabilitada' }}</span
+                  >
+                  @if (!u.emailVerificado) {
+                    <span class="badge badge-acento ms-1">Sin verificar</span>
+                  }
+                </td>
+                <td class="text-end text-nowrap">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary me-1"
+                    (click)="editar(u)"
+                    aria-label="Editar"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="eliminar(u)"
+                    aria-label="Eliminar"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center text-suave py-4">
+                  No hay usuarios que coincidan.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="tarjeta p-4">
+        <h2 class="h5 mb-3">{{ editando === null ? 'Nuevo usuario' : 'Editar usuario' }}</h2>
+        <form (ngSubmit)="guardar()" novalidate>
+          <div class="mb-2">
+            <label for="u_username" class="form-label">Usuario</label>
+            <input
+              id="u_username"
+              name="username"
+              class="form-control"
+              [class.is-invalid]="errores['username']"
+              [(ngModel)]="username"
+            />
+            <div class="invalid-feedback">{{ errores['username'] }}</div>
+          </div>
+          <div class="mb-2">
+            <label for="u_email" class="form-label">Correo</label>
+            <input
+              id="u_email"
+              name="email"
+              type="email"
+              class="form-control"
+              [class.is-invalid]="errores['email']"
+              [(ngModel)]="email"
+            />
+            <div class="invalid-feedback">{{ errores['email'] }}</div>
+          </div>
+          <div class="mb-2">
+            <label for="u_password" class="form-label">Contraseña</label>
+            <input
+              id="u_password"
+              name="password"
+              type="password"
+              class="form-control"
+              [class.is-invalid]="errores['password']"
+              [(ngModel)]="password"
+              autocomplete="new-password"
+            />
+            <div class="invalid-feedback">{{ errores['password'] }}</div>
+            @if (editando !== null) {
+              <div class="form-text">Déjala vacía para no cambiarla.</div>
+            }
+          </div>
+          <div class="mb-2">
+            <label for="u_rol" class="form-label">Rol</label>
+            <select
+              id="u_rol"
+              name="role"
+              class="form-select"
+              [class.is-invalid]="errores['role']"
+              [(ngModel)]="role"
+            >
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+            <div class="invalid-feedback">{{ errores['role'] }}</div>
+          </div>
+          @if (editando !== null) {
+            <div class="form-check">
+              <input
+                id="u_enabled"
+                name="enabled"
+                type="checkbox"
+                class="form-check-input"
+                [(ngModel)]="enabled"
+              />
+              <label for="u_enabled" class="form-check-label">Cuenta habilitada</label>
+            </div>
+            <div class="form-check mb-2">
+              <input
+                id="u_verificado"
+                name="emailVerificado"
+                type="checkbox"
+                class="form-check-input"
+                [(ngModel)]="emailVerificado"
+              />
+              <label for="u_verificado" class="form-check-label">Correo verificado</label>
+            </div>
+          }
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="nuevo()">
+              Limpiar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

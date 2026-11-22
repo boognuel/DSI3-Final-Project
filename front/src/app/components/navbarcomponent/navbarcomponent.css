@@ -1,25 +1,56 @@
-.navbar {
+.barra {
   position: sticky;
   top: 0;
   z-index: 50;
   background: rgba(20, 3, 54, 0.92);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--borde);
+  border-bottom: 1px solid var(--bp-borde);
 }
-.navbar__inner {
+
+.barra__fila {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
   min-height: 68px;
 }
-.navbar__logo img { height: 30px; width: auto; }
-.navbar__menu { display: flex; align-items: center; gap: 1.75rem; }
-.navbar__menu > a { color: var(--crema); font-size: 0.9rem; font-weight: 500; }
-.navbar__menu > a:hover { color: var(--amarillo); text-decoration: none; }
-.navbar__acciones { display: flex; align-items: center; gap: 0.75rem; margin-left: 0.5rem; }
-.navbar__usuario { font-size: 0.85rem; color: var(--texto-suave); }
-.navbar__toggle {
+
+.barra__logo img {
+  height: 30px;
+  width: auto;
+}
+
+.barra__menu {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.barra__menu > a {
+  color: var(--bp-crema);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.barra__menu > a:hover,
+.barra__menu > a.activo {
+  color: var(--bp-amarillo);
+}
+
+.barra__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.barra__usuario {
+  font-size: 0.85rem;
+  color: var(--bp-suave);
+}
+
+.barra__toggle {
   display: none;
   flex-direction: column;
   gap: 5px;
@@ -28,11 +59,20 @@
   border: 0;
   cursor: pointer;
 }
-.navbar__toggle span { width: 24px; height: 2px; background: var(--crema); border-radius: 2px; }
 
-@media (max-width: 860px) {
-  .navbar__toggle { display: flex; }
-  .navbar__menu {
+.barra__toggle span {
+  width: 24px;
+  height: 2px;
+  background: var(--bp-crema);
+  border-radius: 2px;
+}
+
+@media (max-width: 960px) {
+  .barra__toggle {
+    display: flex;
+  }
+
+  .barra__menu {
     display: none;
     position: absolute;
     top: 100%;
@@ -42,9 +82,16 @@
     align-items: flex-start;
     gap: 1rem;
     padding: 1.25rem 1rem 1.5rem;
-    background: var(--bg);
-    border-bottom: 1px solid var(--borde);
+    background: var(--bp-fondo);
+    border-bottom: 1px solid var(--bp-borde);
   }
-  .navbar__menu.abierto { display: flex; }
-  .navbar__acciones { margin-left: 0; flex-wrap: wrap; }
+
+  .barra__menu.abierto {
+    display: flex;
+  }
+
+  .barra__acciones {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
 }

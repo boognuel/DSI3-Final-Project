@@ -1,0 +1,79 @@
+<app-adminbarracomponent></app-adminbarracomponent>
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Salidas</h1>
+    <select
+      id="f_estado"
+      name="estado"
+      class="form-select w-auto"
+      [(ngModel)]="estado"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (e of estados; track e) {
+        <option [value]="e">{{ formato.estado(e) }}</option>
+      }
+    </select>
+  </div>
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (aviso !== '') {
+    <div class="alert alert-success">{{ aviso }}</div>
+  }
+  <div class="tarjeta table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Salida</th>
+          <th>Organiza</th>
+          <th>Presupuesto</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of filtradas(); track s.id) {
+          <tr>
+            <td class="small text-nowrap">{{ formato.fecha(s.fechaHora) }}</td>
+            <td class="small fw-semibold">{{ s.titulo }}</td>
+            <td class="small">{{ s.organizadorNombre }}</td>
+            <td class="small">{{ formato.pesos(s.presupuesto) }}</td>
+            <td>
+              <span class="badge text-bg-light">{{ formato.estado(s.estado) }}</span>
+            </td>
+            <td class="text-end text-nowrap">
+              @if (cancelable(s)) {
+                @if (confirmar === s.id) {
+                  <button type="button" class="btn btn-sm btn-danger me-1" (click)="cancelar(s)">
+                    Sí, cancelar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="confirmar = null"
+                  >
+                    No
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="confirmar = s.id"
+                  >
+                    Cancelar
+                  </button>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="text-center text-suave py-4">No hay salidas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

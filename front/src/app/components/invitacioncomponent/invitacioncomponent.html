@@ -1,0 +1,55 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      @if (mensaje !== '') {
+        <div class="alert alert-danger">{{ mensaje }}</div>
+      }
+      @if (aviso !== '') {
+        <div class="alert alert-success">{{ aviso }}</div>
+      }
+      @if (token !== '' && aviso === '') {
+        <div class="tarjeta overflow-hidden animate__animated animate__fadeInUp">
+          <div class="bg-marca p-4">
+            <h1 class="h3 mb-0">Te invitaron a una salida</h1>
+          </div>
+          <div class="p-4">
+            <p>
+              @if (sugerida === 'si') {
+                Confirma que vas a ir.
+              } @else if (sugerida === 'no') {
+                Confirma que no puedes ir.
+              } @else {
+                Cuéntale al organizador si vas a ir.
+              }
+            </p>
+            <div class="d-flex gap-2">
+              <button
+                type="button"
+                class="btn"
+                [class.btn-success]="sugerida !== 'no'"
+                [class.btn-outline-success]="sugerida === 'no'"
+                (click)="responder(true)"
+                [disabled]="enviando"
+              >
+                <i class="fa-solid fa-check me-1"></i>Voy
+              </button>
+              <button
+                type="button"
+                class="btn"
+                [class.btn-secondary]="sugerida === 'no'"
+                [class.btn-outline-secondary]="sugerida !== 'no'"
+                (click)="responder(false)"
+                [disabled]="enviando"
+              >
+                No puedo
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      <p class="text-center small mt-3">
+        ¿Aún no tienes cuenta? <a routerLink="/register">Regístrate en Bogoparche</a>
+      </p>
+    </div>
+  </div>
+</div>

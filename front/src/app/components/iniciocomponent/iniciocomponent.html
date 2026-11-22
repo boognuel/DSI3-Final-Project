@@ -8,7 +8,7 @@
         quieres gastar.
       </p>
       <div class="hero__botones">
-        <a class="btn btn-primary" routerLink="/" fragment="planes">Ver planes de hoy</a>
+        <a class="btn btn-primary" routerLink="/planes">Ver planes de hoy</a>
         <a class="btn btn-ghost" routerLink="/" fragment="como-funciona">Cómo funciona</a>
       </div>
     </div>
@@ -21,7 +21,7 @@
         <p class="plan__detalle">{{ destacado.detalle }}</p>
         <div class="plan__pie">
           <strong class="plan__precio">{{ destacado.precio }}</strong>
-          <button class="btn btn-primary btn-sm" type="button">Ver plan</button>
+          <a class="btn btn-primary btn-sm" routerLink="/planes">Ver plan</a>
         </div>
       </div>
     </article>
@@ -39,7 +39,12 @@
           <span [class]="'badge ' + r.clase">{{ r.etiqueta }}</span>
           <h3>{{ r.titulo }}</h3>
           <p>{{ r.descripcion }}</p>
-          <a class="rango__enlace" routerLink="/" fragment="planes">{{ r.planes }} planes →</a>
+          <a
+            class="rango__enlace"
+            routerLink="/planes"
+            [queryParams]="{ presupuesto: r.presupuesto }"
+            >Ver planes<i class="fa-solid fa-arrow-right ms-1"></i
+          ></a>
         </article>
       }
     </div>
@@ -50,7 +55,7 @@
   <div class="container">
     <div class="seccion__cabecera">
       <h2>Planes populares</h2>
-      <a routerLink="/" fragment="planes">Ver todos →</a>
+      <a routerLink="/planes">Ver todos<i class="fa-solid fa-arrow-right ms-1"></i></a>
     </div>
 
     <div class="rejilla">
@@ -61,7 +66,7 @@
             <span class="badge">{{ p.precio }}</span>
             <h3>{{ p.titulo }}</h3>
             <p class="plan__detalle">{{ p.detalle }}</p>
-            <button class="btn btn-ghost btn-sm" type="button">Ver plan</button>
+            <a class="btn btn-ghost btn-sm" routerLink="/planes">Ver plan</a>
           </div>
         </article>
       }

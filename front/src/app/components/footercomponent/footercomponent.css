@@ -1,20 +1,49 @@
-.footer { background: var(--bg-footer); padding: 2.5rem 0 1.5rem; margin-top: 3rem; }
-.footer__fila {
+.pie {
+  background: var(--bp-pie);
+  padding: 2.5rem 0 1.5rem;
+  margin-top: 3rem;
+}
+
+.pie__fila {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
   align-items: flex-start;
   justify-content: space-between;
 }
-.footer__logo { height: 26px; width: auto; margin-bottom: 0.75rem; }
-.footer__lema { margin: 0; font-size: 0.85rem; color: var(--texto-suave); }
-.footer__links { display: flex; flex-wrap: wrap; gap: 1.5rem; }
-.footer__links a { color: var(--crema); font-size: 0.85rem; }
-.footer__links a:hover { color: var(--amarillo); text-decoration: none; }
-.footer__legal {
+
+.pie__logo {
+  height: 26px;
+  width: auto;
+  margin-bottom: 0.75rem;
+}
+
+.pie__lema {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--bp-suave);
+}
+
+.pie__enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.pie__enlaces a {
+  color: var(--bp-crema);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.pie__enlaces a:hover {
+  color: var(--bp-amarillo);
+}
+
+.pie__legal {
   margin-top: 2rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--borde);
+  border-top: 1px solid var(--bp-borde);
   font-size: 0.75rem;
-  color: var(--texto-suave);
+  color: var(--bp-suave);
 }
