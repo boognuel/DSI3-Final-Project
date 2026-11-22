@@ -1,0 +1,90 @@
+package co.edu.unbosque.bogoparche.repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.Repository;
+import co.edu.unbosque.bogoparche.model.AccionAuditoria;
+import co.edu.unbosque.bogoparche.model.AuditoriaLog;
+
+/**
+ * Acceso a los registros de auditoría. Extiende {@link Repository} y no JpaRepository para no
+ * exponer operaciones de borrado: la auditoría solo se inserta y se consulta.
+ */
+public interface AuditoriaRepository extends Repository<AuditoriaLog, Long> {
+
+	/**
+	 * Guarda un registro de auditoría.
+	 *
+	 * @param log registro
+	 * @return registro guardado con su identificador
+	 */
+	AuditoriaLog save(AuditoriaLog log);
+
+	/**
+	 * Busca registros en un rango de fechas.
+	 *
+	 * @param desde    fecha inicial
+	 * @param hasta    fecha final
+	 * @param pageable página y orden
+	 * @return página de registros
+	 */
+	Page<AuditoriaLog> findByFechaBetween(LocalDateTime desde, LocalDateTime hasta, Pageable pageable);
+
+	/**
+	 * Busca registros por parte del nombre de usuario y rango de fechas.
+	 *
+	 * @param usuario  parte del nombre de usuario
+	 * @param desde    fecha inicial
+	 * @param hasta    fecha final
+	 * @param pageable página y orden
+	 * @return página de registros
+	 */
+	Page<AuditoriaLog> findByUsuarioNombreContainingIgnoreCaseAndFechaBetween(String usuario, LocalDateTime desde,
+			LocalDateTime hasta, Pageable pageable);
+
+	/**
+	 * Busca registros por acción y rango de fechas.
+	 *
+	 * @param accion   acción
+	 * @param desde    fecha inicial
+	 * @param hasta    fecha final
+	 * @param pageable página y orden
+	 * @return página de registros
+	 */
+	Page<AuditoriaLog> findByAccionAndFechaBetween(AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta,
+			Pageable pageable);
+
+	/**
+	 * Busca registros por parte del nombre de usuario, acción y rango de fechas.
+	 *
+	 * @param usuario  parte del nombre de usuario
+	 * @param accion   acción
+	 * @param desde    fecha inicial
+	 * @param hasta    fecha final
+	 * @param pageable página y orden
+	 * @return página de registros
+	 */
+	Page<AuditoriaLog> findByUsuarioNombreContainingIgnoreCaseAndAccionAndFechaBetween(String usuario,
+			AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta, Pageable pageable);
+
+	/**
+	 * Lista los registros de un periodo en orden cronológico, para el reporte.
+	 *
+	 * @param desde fecha inicial
+	 * @param hasta fecha final
+	 * @return registros del periodo
+	 */
+	List<AuditoriaLog> findByFechaBetweenOrderByFechaAsc(LocalDateTime desde, LocalDateTime hasta);
+
+	/**
+	 * Cuenta los registros de una acción en un periodo.
+	 *
+	 * @param accion acción
+	 * @param desde  fecha inicial
+	 * @param hasta  fecha final
+	 * @return número de registros
+	 */
+	long countByAccionAndFechaBetween(AccionAuditoria accion, LocalDateTime desde, LocalDateTime hasta);
+}
