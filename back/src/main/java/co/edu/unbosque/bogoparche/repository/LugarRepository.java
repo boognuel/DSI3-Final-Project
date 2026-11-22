@@ -4,25 +4,35 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import co.edu.unbosque.bogoparche.model.Lugar;
 
 /**
  * Acceso a los lugares del catálogo.
  */
 public interface LugarRepository extends JpaRepository<Lugar, Long> {
+	/**
+	 * Busca el lugar que se cargó desde un elemento de OpenStreetMap.
+	 *
+	 * @param osmId tipo e identificador del elemento, por ejemplo node/123
+	 * @return el lugar, o null si no se ha cargado
+	 */
+	Lugar findByOsmId(String osmId);
 
 	/**
-	 * Lista los lugares con filtros opcionales, del más económico al más costoso.
+	 * Lista los lugares de una categoría que todavía tienen el precio estimado.
 	 *
-	 * @param zonaId      zona; nula para todas
-	 * @param categoriaId categoría; nula para todas
-	 * @return lugares que cumplen los filtros
+	 * @param categoriaId identificador de la categoría
+	 * @return lugares con precio estimado
 	 */
-	@Query("select l from Lugar l where (:zonaId is null or l.zona.id = :zonaId) "
-			+ "and (:categoriaId is null or l.categoria.id = :categoriaId) order by l.costoEstimado asc, l.nombre asc")
-	List<Lugar> buscar(@Param("zonaId") Long zonaId, @Param("categoriaId") Long categoriaId);
+	List<Lugar> findByCategoriaIdAndPrecioEstimadoTrue(Long categoriaId);
+
+
+	/**
+	 * Lista todos los lugares, del más económico al más costoso.
+	 *
+	 * @return lugares ordenados por costo y nombre
+	 */
+	List<Lugar> findAllByOrderByCostoEstimadoAscNombreAsc();
 
 	/**
 	 * Lista los lugares que caben en el presupuesto, del más económico al más costoso.
@@ -30,8 +40,7 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 	 * @param presupuesto dinero por persona
 	 * @return lugares con costo estimado menor o igual al presupuesto
 	 */
-	@Query("select l from Lugar l where l.costoEstimado <= :presupuesto order by l.costoEstimado asc, l.nombre asc")
-	List<Lugar> alcanzables(@Param("presupuesto") BigDecimal presupuesto);
+	List<Lugar> findByCostoEstimadoLessThanEqualOrderByCostoEstimadoAscNombreAsc(BigDecimal presupuesto);
 
 	/**
 	 * Lista los lugares de las categorías indicadas que caben en el presupuesto, del más económico
@@ -41,10 +50,8 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 	 * @param categoriaIds categorías que le gustan al usuario; no debe estar vacía
 	 * @return lugares de esas categorías con costo estimado menor o igual al presupuesto
 	 */
-	@Query("select l from Lugar l where l.costoEstimado <= :presupuesto and l.categoria.id in :categoriaIds "
-			+ "order by l.costoEstimado asc, l.nombre asc")
-	List<Lugar> alcanzablesEnCategorias(@Param("presupuesto") BigDecimal presupuesto,
-			@Param("categoriaIds") Collection<Long> categoriaIds);
+	List<Lugar> findByCostoEstimadoLessThanEqualAndCategoriaIdInOrderByCostoEstimadoAscNombreAsc(
+			BigDecimal presupuesto, Collection<Long> categoriaIds);
 
 	/**
 	 * Cuenta los lugares de cada categoría, incluidas las categorías sin lugares.

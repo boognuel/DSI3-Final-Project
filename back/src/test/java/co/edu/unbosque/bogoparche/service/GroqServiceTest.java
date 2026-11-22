@@ -2,12 +2,18 @@ package co.edu.unbosque.bogoparche.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.google.gson.Gson;
+import co.edu.unbosque.bogoparche.dto.GroqRespuestaDTO;
+import co.edu.unbosque.bogoparche.dto.GroqSolicitudDTO;
+import co.edu.unbosque.bogoparche.dto.TrayectoDTO;
+import co.edu.unbosque.bogoparche.exception.ServicioExternoException;
 import co.edu.unbosque.bogoparche.model.ModoTransporte;
 
 /**
@@ -15,7 +21,7 @@ import co.edu.unbosque.bogoparche.model.ModoTransporte;
  */
 class GroqServiceTest {
 	private GroqService groqService;
-	private OsrmService.Trayecto trayecto;
+	private TrayectoDTO trayecto;
 
 	/**
 	 * Crea el servicio con su configuración y un trayecto de prueba.
@@ -23,10 +29,9 @@ class GroqServiceTest {
 	@BeforeEach
 	void setUp() {
 		groqService = new GroqService();
-		ReflectionTestUtils.setField(groqService, "url", "https://api.groq.com/openai/v1/chat/completions");
 		ReflectionTestUtils.setField(groqService, "modelo", "openai/gpt-oss-120b");
 		ReflectionTestUtils.setField(groqService, "apiKey", "");
-		trayecto = new OsrmService.Trayecto(4120, 610, "{}", List.of("depart right Calle 85 (350 m)"));
+		trayecto = new TrayectoDTO(4120, 610, "{}", List.of("depart right Calle 85 (350 m)"));
 	}
 
 	/**
@@ -34,10 +39,11 @@ class GroqServiceTest {
 	 */
 	@Test
 	void peticionLlevaModeloYDatosDelRecorrido() {
-		String cuerpo = groqService.armarCuerpo("Panadería La Esquina, Calle 119", ModoTransporte.PIE, trayecto);
-		assertTrue(cuerpo.contains("\"model\":\"openai/gpt-oss-120b\""));
-		assertTrue(cuerpo.contains("Destino: Panadería La Esquina, Calle 119. Modo: pie. Distancia: 4.1 km. "
-				+ "Tiempo: 10 min. Pasos: depart right Calle 85 (350 m)"));
+		GroqSolicitudDTO s = groqService.armarSolicitud("Panadería La Esquina, Calle 119", ModoTransporte.PIE,
+				trayecto);
+		assertEquals("openai/gpt-oss-120b", s.getModel());
+		assertTrue(s.getMessages().get(1).getContent().contains("Destino: Panadería La Esquina, Calle 119. Modo: pie. "
+				+ "Distancia: 4.1 km. Tiempo: 10 min. Pasos: depart right Calle 85 (350 m)"));
 	}
 
 	/**
@@ -45,16 +51,19 @@ class GroqServiceTest {
 	 */
 	@Test
 	void leeElTextoDeLaPrimeraRespuesta() {
-		assertEquals("1. Sal por la Calle 85.", groqService.leerTexto(
-				"{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\" 1. Sal por la Calle 85. \"}}]}"));
-		assertNull(groqService.leerTexto("{\"choices\":[]}"));
+		Gson gson = new Gson();
+		assertEquals("1. Sal por la Calle 85.", groqService.leerTexto(gson.fromJson(
+				"{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\" 1. Sal por la Calle 85. \"}}]}",
+				GroqRespuestaDTO.class)));
+		assertNull(groqService.leerTexto(gson.fromJson("{\"choices\":[]}", GroqRespuestaDTO.class)));
 	}
 
 	/**
-	 * Sin clave configurada no se llama a Groq y la ruta queda sin indicaciones.
+	 * Sin clave configurada no se puede pedir el recorrido.
 	 */
 	@Test
-	void sinClaveNoHayIndicaciones() {
-		assertNull(groqService.redactarIndicaciones("Panadería", ModoTransporte.CARRO, trayecto));
+	void sinClaveNoHayRecorrido() {
+		assertThrows(ServicioExternoException.class,
+				() -> groqService.redactarIndicaciones("Panadería", ModoTransporte.CARRO, trayecto));
 	}
 }

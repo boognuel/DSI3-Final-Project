@@ -20,16 +20,10 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Registro y consulta de la auditoría. Además de los datos que recibe, toma de la petición HTTP la
- * IP, el navegador y la ubicación que envía el frontend en las cabeceras {@value #CABECERA_LATITUD}
- * y {@value #CABECERA_LONGITUD}.
+ * IP y el navegador.
  */
 @Service
 public class AuditoriaService {
-	/** Cabecera con la latitud del navegador, en grados decimales. */
-	public static final String CABECERA_LATITUD = "X-Latitud";
-	/** Cabecera con la longitud del navegador, en grados decimales. */
-	public static final String CABECERA_LONGITUD = "X-Longitud";
-
 	private static final Logger log = LoggerFactory.getLogger(AuditoriaService.class);
 
 	@Autowired
@@ -66,8 +60,7 @@ public class AuditoriaService {
 	}
 
 	/**
-	 * Guarda un registro con los datos de la petición actual: IP, navegador y, si llegan válidas, la
-	 * latitud y longitud. Un fallo al guardar se registra en el log y no interrumpe la operación.
+	 * Guarda un registro con los datos de la petición actual: IP y navegador. Un fallo al guardar se registra en el log y no interrumpe la operación.
 	 *
 	 * @param usuarioId     identificador del usuario, o nulo
 	 * @param usuarioNombre nombre de usuario, o nulo
@@ -96,37 +89,11 @@ public class AuditoriaService {
 				HttpServletRequest req = sra.getRequest();
 				l.setIpOrigen(req.getRemoteAddr());
 				l.setUserAgent(recortar(req.getHeader("User-Agent"), 255));
-				Double lat = coordenada(req.getHeader(CABECERA_LATITUD), 90);
-				Double lon = coordenada(req.getHeader(CABECERA_LONGITUD), 180);
-				// Solo se guarda la ubicación si llegan las dos coordenadas válidas
-				if (lat != null && lon != null) {
-					l.setLatitud(lat);
-					l.setLongitud(lon);
-				}
 			}
 			repo.save(l);
 		} catch (Exception e) {
 			// Un fallo al auditar no debe romper la operación del usuario
 			log.error("No se pudo registrar la auditoría: {}", e.getMessage());
-		}
-	}
-
-	/**
-	 * Convierte el valor de una cabecera de ubicación en número.
-	 *
-	 * @param valor  valor de la cabecera
-	 * @param limite valor absoluto máximo (90 para latitud, 180 para longitud)
-	 * @return la coordenada, o nulo si falta, no es un número o está fuera de rango
-	 */
-	private Double coordenada(String valor, double limite) {
-		if (valor == null || valor.isBlank()) {
-			return null;
-		}
-		try {
-			double d = Double.parseDouble(valor.trim());
-			return Double.isFinite(d) && Math.abs(d) <= limite ? d : null;
-		} catch (NumberFormatException e) {
-			return null;
 		}
 	}
 
@@ -146,7 +113,16 @@ public class AuditoriaService {
 		PageRequest pr = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),
 				Sort.by(Sort.Direction.DESC, "fecha"));
 		String u = usuario == null ? "" : usuario.trim();
-		return accion == null ? repo.buscar(u, desde, hasta, pr) : repo.buscarPorAccion(u, accion, desde, hasta, pr);
+		if (u.isEmpty()) {
+			if (accion == null) {
+				return repo.findByFechaBetween(desde, hasta, pr);
+			}
+			return repo.findByAccionAndFechaBetween(accion, desde, hasta, pr);
+		}
+		if (accion == null) {
+			return repo.findByUsuarioNombreContainingIgnoreCaseAndFechaBetween(u, desde, hasta, pr);
+		}
+		return repo.findByUsuarioNombreContainingIgnoreCaseAndAccionAndFechaBetween(u, accion, desde, hasta, pr);
 	}
 
 	/**

@@ -31,4 +31,6 @@ public class Zona {
 	private BigDecimal gastoMinimo;
 	@Column(precision = 14, scale = 2)
 	private BigDecimal gastoMaximo;
+	private Double latitudMinima;
+	private Double latitudMaxima;
 }

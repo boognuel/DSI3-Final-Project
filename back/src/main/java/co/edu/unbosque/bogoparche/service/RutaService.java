@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import co.edu.unbosque.bogoparche.dto.RutaDTO;
+import co.edu.unbosque.bogoparche.dto.TrayectoDTO;
 import co.edu.unbosque.bogoparche.exception.AccesoDenegadoException;
 import co.edu.unbosque.bogoparche.exception.ApiException;
 import co.edu.unbosque.bogoparche.exception.DatosInvalidosException;
@@ -23,13 +24,10 @@ import co.edu.unbosque.bogoparche.repository.SalidaRepository;
 
 /**
  * Calcula la ruta desde la ubicación del usuario hasta un lugar propuesto en una salida: OSRM da el
- * camino y Groq redacta las indicaciones. Si Groq falla, la ruta se entrega igual, sin indicaciones.
+ * camino y Groq redacta las indicaciones. Si alguno de los dos falla, no se entrega la ruta.
  */
 @Service
 public class RutaService {
-	static final String SIN_INDICACIONES = "Las indicaciones no están disponibles en este momento; "
-			+ "sigue la ruta marcada en el mapa.";
-
 	@Autowired
 	private SalidaRepository salidaRepo;
 	@Autowired
@@ -54,7 +52,7 @@ public class RutaService {
 	 * @throws RecursoNoEncontradoException si la salida no existe
 	 * @throws AccesoDenegadoException      si el usuario no participa en la salida ni es administrador
 	 * @throws DatosInvalidosException      si el lugar no está propuesto en la salida o no hay camino
-	 * @throws ServicioExternoException     si el servicio de rutas no responde
+	 * @throws ServicioExternoException     si OSRM o Groq no responden
 	 */
 	public RutaDTO calcular(RutaDTO d, User u) {
 		Salida salida = salidaRepo.findById(d.getSalidaId())
@@ -66,10 +64,13 @@ public class RutaService {
 				.orElseThrow(() -> new DatosInvalidosException("El lugar no está propuesto en esta salida")).getLugar();
 		ModoTransporte modo = d.getModoTransporte() == null ? ModoTransporte.CARRO : d.getModoTransporte();
 
-		OsrmService.Trayecto trayecto;
+		TrayectoDTO trayecto;
+		String indicaciones;
 		try {
 			trayecto = osrmService.calcular(modo, d.getOrigenLatitud(), d.getOrigenLongitud(), lugar.getLatitud(),
 					lugar.getLongitud());
+			indicaciones = groqService.redactarIndicaciones(lugar.getNombre() + ", " + lugar.getDireccion(), modo,
+					trayecto);
 		} catch (ApiException e) {
 			auditoriaService.registrar(u, AccionAuditoria.CALCULAR_RUTA, "Lugar", lugar.getId(),
 					"Ruta a " + lugar.getNombre() + ": " + e.getMessage(), ResultadoAuditoria.FALLO);
@@ -82,26 +83,22 @@ public class RutaService {
 		r.setLugarDestino(lugar);
 		r.setOrigenLatitud(d.getOrigenLatitud());
 		r.setOrigenLongitud(d.getOrigenLongitud());
-		r.setDistanciaMetros(trayecto.distanciaMetros());
-		r.setDuracionSegundos(trayecto.duracionSegundos());
+		r.setDistanciaMetros(trayecto.getDistanciaMetros());
+		r.setDuracionSegundos(trayecto.getDuracionSegundos());
 		r.setModoTransporte(modo);
 		r.setFechaCalculo(LocalDateTime.now());
 		rutaRepo.save(r);
 
-		String indicaciones = groqService.redactarIndicaciones(lugar.getNombre() + ", " + lugar.getDireccion(), modo,
-				trayecto);
 		auditoriaService.registrar(u, AccionAuditoria.CALCULAR_RUTA, "Ruta", r.getId(),
-				"Ruta a " + lugar.getNombre() + " en " + modo.name().toLowerCase(Locale.ROOT)
-						+ (indicaciones == null ? ", sin indicaciones" : ""),
-				ResultadoAuditoria.EXITO);
+				"Ruta a " + lugar.getNombre() + " en " + modo.name().toLowerCase(Locale.ROOT), ResultadoAuditoria.EXITO);
 
 		d.setModoTransporte(modo);
 		d.setDestinoNombre(lugar.getNombre());
-		d.setDistanciaMetros(trayecto.distanciaMetros());
-		d.setDuracionSegundos(trayecto.duracionSegundos());
-		d.setDuracionMinutos((int) Math.round(trayecto.duracionSegundos() / 60.0));
-		d.setGeometriaGeoJson(trayecto.geometriaGeoJson());
-		d.setIndicaciones(indicaciones == null ? SIN_INDICACIONES : indicaciones);
+		d.setDistanciaMetros(trayecto.getDistanciaMetros());
+		d.setDuracionSegundos(trayecto.getDuracionSegundos());
+		d.setDuracionMinutos((int) Math.round(trayecto.getDuracionSegundos() / 60.0));
+		d.setGeometriaGeoJson(trayecto.getGeometriaGeoJson());
+		d.setIndicaciones(indicaciones);
 		return d;
 	}
 }

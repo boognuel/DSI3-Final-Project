@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import co.edu.unbosque.bogoparche.dto.RutaDTO;
+import co.edu.unbosque.bogoparche.dto.TrayectoDTO;
 import co.edu.unbosque.bogoparche.exception.AccesoDenegadoException;
 import co.edu.unbosque.bogoparche.exception.DatosInvalidosException;
 import co.edu.unbosque.bogoparche.exception.ServicioExternoException;
@@ -58,7 +59,7 @@ class RutaServiceTest {
 
 	private User usuario;
 	private Lugar lugar;
-	private OsrmService.Trayecto trayecto;
+	private TrayectoDTO trayecto;
 
 	/**
 	 * Prepara una salida 4 con el lugar 7 propuesto y un usuario sin rol de administrador.
@@ -80,7 +81,7 @@ class RutaServiceTest {
 		when(salidaRepo.findById(4L)).thenReturn(Optional.of(salida));
 		lenient().when(salidaLugarRepo.findBySalidaIdAndLugarId(4L, 7L))
 				.thenReturn(Optional.of(sl));
-		trayecto = new OsrmService.Trayecto(4120, 610, "{\"type\":\"LineString\"}", List.of("depart"));
+		trayecto = new TrayectoDTO(4120, 610, "{\"type\":\"LineString\"}", List.of("depart"));
 	}
 
 	/**
@@ -101,15 +102,18 @@ class RutaServiceTest {
 	}
 
 	/**
-	 * Si Groq no responde, la ruta se entrega igual con un aviso en vez de las indicaciones.
+	 * Si Groq no responde, no se entrega la ruta, no se guarda y la falla queda en la auditoría.
 	 */
 	@Test
-	void sinGroqLaRutaSeEntregaIgual() {
+	void sinGroqNoHayRuta() {
 		when(salidaService.esParticipante(4L, usuario)).thenReturn(true);
 		when(osrmService.calcular(any(), anyDouble(), anyDouble(), anyDouble(), anyDouble())).thenReturn(trayecto);
-		RutaDTO r = rutaService.calcular(peticion(null), usuario);
-		assertEquals(ModoTransporte.CARRO, r.getModoTransporte());
-		assertEquals(RutaService.SIN_INDICACIONES, r.getIndicaciones());
+		when(groqService.redactarIndicaciones(anyString(), any(), any()))
+				.thenThrow(new ServicioExternoException("caído"));
+		assertThrows(ServicioExternoException.class, () -> rutaService.calcular(peticion(null), usuario));
+		verify(rutaRepo, never()).save(any());
+		verify(auditoriaService).registrar(eq(usuario), eq(AccionAuditoria.CALCULAR_RUTA), eq("Lugar"), eq(7L),
+				anyString(), eq(ResultadoAuditoria.FALLO));
 	}
 
 	/**

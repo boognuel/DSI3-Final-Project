@@ -40,7 +40,7 @@ public class ZonaController {
 	 * @param auth administrador autenticado
 	 * @return 201 con la zona creada
 	 */
-	@PostMapping("/create")
+	@PostMapping("/createjson")
 	public ResponseEntity<ZonaDTO> create(@Valid @RequestBody ZonaDTO dto, Authentication auth) {
 		zonaService.create(dto);
 		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Zona", dto.getId(),
@@ -77,7 +77,7 @@ public class ZonaController {
 	 * @param auth administrador autenticado
 	 * @return 200 si la zona se actualizó
 	 */
-	@PutMapping("/update/{id}")
+	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<String> update(@PathVariable Long id, @Valid @RequestBody ZonaDTO dto, Authentication auth) {
 		zonaService.updateById(id, dto);
 		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Zona", id,

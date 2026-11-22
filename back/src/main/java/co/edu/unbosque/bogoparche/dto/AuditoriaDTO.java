@@ -23,8 +23,6 @@ public class AuditoriaDTO {
 	private String detalle;
 	private String ipOrigen;
 	private String userAgent;
-	private Double latitud;
-	private Double longitud;
 	private ResultadoAuditoria resultado;
 
 	/**
