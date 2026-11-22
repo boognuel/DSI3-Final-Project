@@ -47,7 +47,10 @@ class EstadisticaServiceTest {
 		when(categoriaRepo.findAllByOrderByNombreAsc()).thenReturn(List.of(categoria(1L, "bailar"), categoria(2L, "comer")));
 		when(lugarRepo.countByCategoriaId(1L)).thenReturn(0L);
 		when(lugarRepo.countByCategoriaId(2L)).thenReturn(4L);
+		when(invitacionRepo.countByEstado(EstadoInvitacion.PENDIENTE)).thenReturn(0L);
 		when(invitacionRepo.countByEstado(EstadoInvitacion.ACEPTADA)).thenReturn(3L);
+		when(invitacionRepo.countByEstado(EstadoInvitacion.RECHAZADA)).thenReturn(0L);
+		when(invitacionRepo.countByEstado(EstadoInvitacion.EXPIRADA)).thenReturn(0L);
 
 		EstadisticasDTO e = estadisticaService.calcular();
 		assertEquals(List.of(new ConteoDTO("2026-03", 1), new ConteoDTO("2026-11", 2)), e.getUsuariosPorMes());
