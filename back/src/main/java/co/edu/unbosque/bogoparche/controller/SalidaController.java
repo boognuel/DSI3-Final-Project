@@ -111,7 +111,7 @@ public class SalidaController {
 	 * @param auth usuario autenticado
 	 * @return 201 con la salida creada
 	 */
-	@PostMapping("/create")
+	@PostMapping("/createjson")
 	public ResponseEntity<SalidaDTO> create(@Valid @RequestBody SalidaDTO dto, Authentication auth) {
 		User actual = (User) auth.getPrincipal();
 		dto.setOrganizadorId(actual.getId());
@@ -119,6 +119,21 @@ public class SalidaController {
 		auditoriaService.registrar(actual, AccionAuditoria.CREAR_SALIDA, "Salida", dto.getId(), dto.getTitulo(),
 				ResultadoAuditoria.EXITO);
 		return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+	}
+
+	/**
+	 * Lista las salidas de todos los usuarios. Solo el administrador puede consultarlas; para
+	 * cancelar una, cambia su estado a CANCELADA con /updatejson/{id}.
+	 *
+	 * @param auth usuario autenticado
+	 * @return 200 con todas las salidas
+	 */
+	@GetMapping("/getall")
+	public ResponseEntity<List<SalidaDTO>> getAll(Authentication auth) {
+		if (!esAdmin((User) auth.getPrincipal())) {
+			throw new AccesoDenegadoException("Solo el administrador puede ver todas las salidas");
+		}
+		return ResponseEntity.ok(salidaService.getAll());
 	}
 
 	/**
@@ -152,7 +167,7 @@ public class SalidaController {
 	 * @param auth usuario autenticado
 	 * @return 200 si la salida se actualizó
 	 */
-	@PutMapping("/update/{id}")
+	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<String> update(@PathVariable Long id, @Valid @RequestBody SalidaDTO dto,
 			Authentication auth) {
 		User actual = (User) auth.getPrincipal();
