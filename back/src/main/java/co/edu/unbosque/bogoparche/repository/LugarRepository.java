@@ -11,6 +11,22 @@ import co.edu.unbosque.bogoparche.model.Lugar;
  * Acceso a los lugares del catálogo.
  */
 public interface LugarRepository extends JpaRepository<Lugar, Long> {
+	/**
+	 * Busca el lugar que se cargó desde un elemento de OpenStreetMap.
+	 *
+	 * @param osmId tipo e identificador del elemento, por ejemplo node/123
+	 * @return el lugar, o null si no se ha cargado
+	 */
+	Lugar findByOsmId(String osmId);
+
+	/**
+	 * Lista los lugares de una categoría que todavía tienen el precio estimado.
+	 *
+	 * @param categoriaId identificador de la categoría
+	 * @return lugares con precio estimado
+	 */
+	List<Lugar> findByCategoriaIdAndPrecioEstimadoTrue(Long categoriaId);
+
 
 	/**
 	 * Lista los lugares con filtros opcionales, del más económico al más costoso.

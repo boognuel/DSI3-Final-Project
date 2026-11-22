@@ -174,6 +174,7 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 		l.setLatitud(d.getLatitud());
 		l.setLongitud(d.getLongitud());
 		l.setCostoEstimado(d.getCostoEstimado());
+		l.setPrecioEstimado(false);
 	}
 
 	/**
@@ -199,6 +200,7 @@ public class LugarService implements CRUDOperation<LugarDTO> {
 		d.setLatitud(l.getLatitud());
 		d.setLongitud(l.getLongitud());
 		d.setCostoEstimado(l.getCostoEstimado());
+		d.setPrecioEstimado(l.isPrecioEstimado());
 		return d;
 	}
 }
