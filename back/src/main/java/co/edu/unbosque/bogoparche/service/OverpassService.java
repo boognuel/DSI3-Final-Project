@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import co.edu.unbosque.bogoparche.dto.OverpassElementoDTO;
 import co.edu.unbosque.bogoparche.dto.OverpassRespuestaDTO;
 import co.edu.unbosque.bogoparche.exception.DatosInvalidosException;
@@ -45,6 +46,7 @@ public class OverpassService {
 	 *                                  latitudes
 	 * @throws ServicioExternoException si Overpass no responde
 	 */
+	@Transactional
 	public String cargarLugares() {
 		List<Categoria> categorias = categoriasConEtiquetas();
 		List<Zona> zonas = zonasConLatitudes();
