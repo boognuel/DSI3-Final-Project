@@ -46,18 +46,8 @@ public class OverpassService {
 	 * @throws ServicioExternoException si Overpass no responde
 	 */
 	public String cargarLugares() {
-		List<Categoria> categorias = new ArrayList<>();
-		for (Categoria c : categoriaRepo.findAll()) {
-			if (c.getEtiquetaOsm() != null && !c.getEtiquetaOsm().isBlank() && c.getPrecioReferencia() != null) {
-				categorias.add(c);
-			}
-		}
-		List<Zona> zonas = new ArrayList<>();
-		for (Zona z : zonaRepo.findAll()) {
-			if (z.getLatitudMinima() != null && z.getLatitudMaxima() != null) {
-				zonas.add(z);
-			}
-		}
+		List<Categoria> categorias = categoriasConEtiquetas();
+		List<Zona> zonas = zonasConLatitudes();
 		if (categorias.isEmpty() || zonas.isEmpty()) {
 			throw new DatosInvalidosException(
 					"Para cargar lugares, al menos una categoría debe tener etiqueta de OpenStreetMap y precio de "
@@ -79,6 +69,37 @@ public class OverpassService {
 			}
 		}
 		return "Se agregaron " + nuevos + " lugares y se actualizaron " + actualizados;
+	}
+
+	/**
+	 * Lista las categorías que tienen etiquetas de OpenStreetMap y precio de referencia.
+	 *
+	 * @return categorías que se pueden cargar
+	 */
+	private List<Categoria> categoriasConEtiquetas() {
+		List<Categoria> categorias = new ArrayList<>();
+		for (Categoria c : categoriaRepo.findAll()) {
+			boolean conEtiquetas = c.getEtiquetaOsm() != null && !c.getEtiquetaOsm().isBlank();
+			if (conEtiquetas && c.getPrecioReferencia() != null) {
+				categorias.add(c);
+			}
+		}
+		return categorias;
+	}
+
+	/**
+	 * Lista las zonas que tienen sus latitudes.
+	 *
+	 * @return zonas que se pueden cargar
+	 */
+	private List<Zona> zonasConLatitudes() {
+		List<Zona> zonas = new ArrayList<>();
+		for (Zona z : zonaRepo.findAll()) {
+			if (z.getLatitudMinima() != null && z.getLatitudMaxima() != null) {
+				zonas.add(z);
+			}
+		}
+		return zonas;
 	}
 
 	/**
@@ -136,20 +157,15 @@ public class OverpassService {
 	 */
 	private int guardar(OverpassElementoDTO e, List<Categoria> categorias, List<Zona> zonas) {
 		Map<String, String> tags = e.getTags();
-		if (tags == null || tags.get("name") == null || tags.get("name").isBlank()) {
+		if (!tieneNombre(tags)) {
 			return 0;
 		}
-		Double lat = e.getLat();
-		Double lon = e.getLon();
-		if ((lat == null || lon == null) && e.getCenter() != null) {
-			lat = e.getCenter().getLat();
-			lon = e.getCenter().getLon();
-		}
-		if (lat == null || lon == null || lat < UbicacionValidator.LATITUD_MINIMA
-				|| lat > UbicacionValidator.LATITUD_MAXIMA || lon < UbicacionValidator.LONGITUD_MINIMA
-				|| lon > UbicacionValidator.LONGITUD_MAXIMA) {
+		double[] punto = coordenadas(e);
+		if (punto.length == 0) {
 			return 0;
 		}
+		double lat = punto[0];
+		double lon = punto[1];
 		Categoria categoria = buscarCategoria(tags, categorias);
 		Zona zona = buscarZona(lat, zonas);
 		if (categoria == null || zona == null) {
@@ -175,6 +191,40 @@ public class OverpassService {
 		}
 		lugarRepo.save(l);
 		return resultado;
+	}
+
+	/**
+	 * Indica si el elemento tiene nombre.
+	 *
+	 * @param tags etiquetas del elemento
+	 * @return true si tiene la etiqueta name con texto
+	 */
+	private boolean tieneNombre(Map<String, String> tags) {
+		return tags != null && tags.get("name") != null && !tags.get("name").isBlank();
+	}
+
+	/**
+	 * Saca la latitud y la longitud del elemento, o de su centro si es un edificio o un área.
+	 *
+	 * @param e elemento de Overpass
+	 * @return arreglo con latitud y longitud, o vacío si no tiene o quedan fuera del área
+	 */
+	private double[] coordenadas(OverpassElementoDTO e) {
+		Double lat = e.getLat();
+		Double lon = e.getLon();
+		if ((lat == null || lon == null) && e.getCenter() != null) {
+			lat = e.getCenter().getLat();
+			lon = e.getCenter().getLon();
+		}
+		if (lat == null || lon == null) {
+			return new double[0];
+		}
+		boolean latitudValida = lat >= UbicacionValidator.LATITUD_MINIMA && lat <= UbicacionValidator.LATITUD_MAXIMA;
+		boolean longitudValida = lon >= UbicacionValidator.LONGITUD_MINIMA && lon <= UbicacionValidator.LONGITUD_MAXIMA;
+		if (!latitudValida || !longitudValida) {
+			return new double[0];
+		}
+		return new double[] { lat, lon };
 	}
 
 	/**
