@@ -16,6 +16,9 @@ import { Avisoubicacioncomponent } from './components/avisoubicacioncomponent/av
 import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
 import { Buscadorcomponent } from './components/buscadorcomponent/buscadorcomponent';
 import { Mapacomponent } from './components/mapacomponent/mapacomponent';
+import { Salidascomponent } from './components/salidascomponent/salidascomponent';
+import { Salidaformcomponent } from './components/salidaformcomponent/salidaformcomponent';
+import { Salidadetallecomponent } from './components/salidadetallecomponent/salidadetallecomponent';
 
 /**
  * Módulo raíz: declara los componentes, importa el enrutamiento y los formularios, y registra el cliente HTTP con el interceptor de autenticación.
@@ -34,6 +37,9 @@ import { Mapacomponent } from './components/mapacomponent/mapacomponent';
     Iniciocomponent,
     Buscadorcomponent,
     Mapacomponent,
+    Salidascomponent,
+    Salidaformcomponent,
+    Salidadetallecomponent,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [

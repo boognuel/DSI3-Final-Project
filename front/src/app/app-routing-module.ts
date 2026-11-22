@@ -9,6 +9,9 @@ import { Olvidopasswordcomponent } from './components/olvidopasswordcomponent/ol
 import { Restablecerpasswordcomponent } from './components/restablecerpasswordcomponent/restablecerpasswordcomponent';
 import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
 import { Buscadorcomponent } from './components/buscadorcomponent/buscadorcomponent';
+import { Salidascomponent } from './components/salidascomponent/salidascomponent';
+import { Salidaformcomponent } from './components/salidaformcomponent/salidaformcomponent';
+import { Salidadetallecomponent } from './components/salidadetallecomponent/salidadetallecomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -21,6 +24,10 @@ const routes: Routes = [
   { path: 'reset-password', component: Restablecerpasswordcomponent },
   { path: '', component: Iniciocomponent },
   { path: 'planes', component: Buscadorcomponent, canActivate: [AuthGuard] },
+  { path: 'salidas', component: Salidascomponent, canActivate: [AuthGuard] },
+  { path: 'salidas/nueva', component: Salidaformcomponent, canActivate: [AuthGuard] },
+  { path: 'salidas/editar/:id', component: Salidaformcomponent, canActivate: [AuthGuard] },
+  { path: 'salidas/:id', component: Salidadetallecomponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '' },
 ];
 

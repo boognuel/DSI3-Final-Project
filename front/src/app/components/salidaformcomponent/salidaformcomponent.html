@@ -1,0 +1,86 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="tarjeta p-4 p-md-5">
+        <h1 class="h3 mb-4">{{ id === null ? 'Armar salida' : 'Editar salida' }}</h1>
+        @if (mensaje !== '') {
+          <div class="alert alert-danger">{{ mensaje }}</div>
+        }
+        <form (ngSubmit)="guardar()" novalidate>
+          <div class="mb-3">
+            <label for="titulo" class="form-label">Título</label>
+            <input
+              id="titulo"
+              name="titulo"
+              type="text"
+              class="form-control"
+              [class.is-invalid]="errores['titulo']"
+              [(ngModel)]="titulo"
+              placeholder="Brunch en Usaquén con el parche"
+            />
+            <div class="invalid-feedback">{{ errores['titulo'] }}</div>
+          </div>
+          <div class="mb-3">
+            <label for="descripcion" class="form-label"
+              >Descripción <span class="text-suave small">(opcional)</span></label
+            >
+            <textarea
+              id="descripcion"
+              name="descripcion"
+              rows="2"
+              class="form-control"
+              [class.is-invalid]="errores['descripcion']"
+              [(ngModel)]="descripcion"
+              placeholder="Nos vemos en la entrada del parque"
+            ></textarea>
+            <div class="invalid-feedback">{{ errores['descripcion'] }}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="fechaHora" class="form-label">Fecha y hora</label>
+              <input
+                id="fechaHora"
+                name="fechaHora"
+                type="datetime-local"
+                class="form-control"
+                [min]="minimo"
+                [class.is-invalid]="errores['fechaHora']"
+                [(ngModel)]="fechaHora"
+              />
+              <div class="invalid-feedback">{{ errores['fechaHora'] }}</div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="presupuesto" class="form-label">Presupuesto por persona</label>
+              <div class="input-group has-validation">
+                <span class="input-group-text">$</span>
+                <input
+                  id="presupuesto"
+                  name="presupuesto"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  class="form-control"
+                  [class.is-invalid]="errores['presupuesto']"
+                  [(ngModel)]="presupuesto"
+                />
+                <div class="invalid-feedback">{{ errores['presupuesto'] }}</div>
+              </div>
+            </div>
+          </div>
+          @if (id === null && lugarNombre !== '') {
+            <p class="small text-suave">
+              <i class="fa-solid fa-location-dot text-acento me-1"></i>Se propondrá
+              {{ lugarNombre }}. Después puedes agregar más lugares desde la búsqueda.
+            </p>
+          }
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="enviando">
+              {{ id === null ? 'Crear salida' : 'Guardar cambios' }}
+            </button>
+            <a class="btn btn-outline-secondary" routerLink="/salidas">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
