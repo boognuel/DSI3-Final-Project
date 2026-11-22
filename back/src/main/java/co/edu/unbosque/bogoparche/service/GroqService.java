@@ -1,21 +1,16 @@
 package co.edu.unbosque.bogoparche.service;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import co.edu.unbosque.bogoparche.dto.GroqMensajeDTO;
+import co.edu.unbosque.bogoparche.dto.GroqRespuestaDTO;
+import co.edu.unbosque.bogoparche.dto.GroqSolicitudDTO;
+import co.edu.unbosque.bogoparche.dto.TrayectoDTO;
+import co.edu.unbosque.bogoparche.exception.ServicioExternoException;
 import co.edu.unbosque.bogoparche.model.ModoTransporte;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Redacta en español las indicaciones para llegar a un lugar a partir de los pasos que calculó
@@ -23,16 +18,11 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @Service
 public class GroqService {
-	private static final Logger log = LoggerFactory.getLogger(GroqService.class);
-	private static final JsonMapper JSON = JsonMapper.builder().build();
+	static final String NO_DISPONIBLE = "Las indicaciones no están disponibles en este momento, intenta más tarde";
 	private static final String INSTRUCCIONES = "Eres un asistente de BogoParche. Redacta indicaciones breves y "
 			+ "claras en español, en una lista numerada, para llegar a un plan en Bogotá. Usa solo los datos que se "
 			+ "te entregan y no inventes calles ni lugares.";
 
-	private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
-
-	@Value("${groq.url}")
-	private String url;
 	@Value("${groq.model}")
 	private String modelo;
 	@Value("${groq.api.key:}")
@@ -44,84 +34,69 @@ public class GroqService {
 	 * @param destino  nombre y dirección del lugar
 	 * @param modo     modo de transporte
 	 * @param trayecto camino calculado por OSRM
-	 * @return texto de las indicaciones, o {@code null} si Groq no está configurado o no respondió
+	 * @return texto de las indicaciones
+	 * @throws ServicioExternoException si Groq no está configurado, no responde o responde vacío
 	 */
-	public String redactarIndicaciones(String destino, ModoTransporte modo, OsrmService.Trayecto trayecto) {
+	public String redactarIndicaciones(String destino, ModoTransporte modo, TrayectoDTO trayecto) {
 		if (apiKey == null || apiKey.isBlank()) {
-			log.warn("GROQ_API_KEY no está configurada; la ruta se entrega sin indicaciones");
-			return null;
+			throw new ServicioExternoException(NO_DISPONIBLE);
 		}
-		try {
-			HttpRequest peticion = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(30))
-					.header("Authorization", "Bearer " + apiKey).header("Content-Type", "application/json")
-					.POST(HttpRequest.BodyPublishers.ofString(armarCuerpo(destino, modo, trayecto))).build();
-			HttpResponse<String> respuesta = http.send(peticion, HttpResponse.BodyHandlers.ofString());
-			if (respuesta.statusCode() != 200) {
-				log.warn("Groq respondió con el estado {}", respuesta.statusCode());
-				return null;
-			}
-			return leerTexto(respuesta.body());
-		} catch (IOException | JacksonException e) {
-			log.warn("No se pudo consultar Groq: {}", e.getMessage());
-			return null;
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
+		String texto = leerTexto(
+				ExternalHTTPRequestHandler.doPostGroqAndConvertToDto(apiKey, armarSolicitud(destino, modo, trayecto)));
+		if (texto == null) {
+			throw new ServicioExternoException(NO_DISPONIBLE);
 		}
+		return texto;
 	}
 
 	/**
-	 * Arma el cuerpo JSON de la petición con los datos del recorrido.
+	 * Arma la petición con los datos del recorrido.
 	 *
 	 * @param destino  nombre y dirección del lugar
 	 * @param modo     modo de transporte
 	 * @param trayecto camino calculado por OSRM
-	 * @return cuerpo de la petición
+	 * @return petición para Groq
 	 */
-	String armarCuerpo(String destino, ModoTransporte modo, OsrmService.Trayecto trayecto) {
+	GroqSolicitudDTO armarSolicitud(String destino, ModoTransporte modo, TrayectoDTO trayecto) {
 		String datos = String.format(Locale.ROOT, "Destino: %s. Modo: %s. Distancia: %.1f km. Tiempo: %d min. Pasos: %s",
-				destino, modo.name().toLowerCase(Locale.ROOT), trayecto.distanciaMetros() / 1000.0,
-				Math.round(trayecto.duracionSegundos() / 60.0), String.join("; ", trayecto.pasos()));
-		return JSON.writeValueAsString(Map.of("model", modelo, "temperature", 0.3, "messages",
-				List.of(Map.of("role", "system", "content", INSTRUCCIONES), Map.of("role", "user", "content", datos))));
+				destino, modo.name().toLowerCase(Locale.ROOT), trayecto.getDistanciaMetros() / 1000.0,
+				Math.round(trayecto.getDuracionSegundos() / 60.0), String.join("; ", trayecto.getPasos()));
+		List<GroqMensajeDTO> mensajes = new ArrayList<>();
+		mensajes.add(mensaje("system", INSTRUCCIONES));
+		mensajes.add(mensaje("user", datos));
+		GroqSolicitudDTO s = new GroqSolicitudDTO();
+		s.setModel(modelo);
+		s.setTemperature(0.3);
+		s.setMessages(mensajes);
+		return s;
 	}
 
 	/**
 	 * Lee el texto de la respuesta de Groq.
 	 *
-	 * @param cuerpo JSON de la respuesta
-	 * @return texto de la primera respuesta, o {@code null} si viene vacía
+	 * @param r respuesta convertida, o null si Groq no respondió
+	 * @return texto de la primera respuesta, o null si no hay
 	 */
-	String leerTexto(String cuerpo) {
-		RespuestaGroq r = JSON.readValue(cuerpo, RespuestaGroq.class);
-		if (r.choices() == null || r.choices().isEmpty() || r.choices().get(0).message() == null) {
+	String leerTexto(GroqRespuestaDTO r) {
+		if (r == null || r.getChoices() == null || r.getChoices().isEmpty()
+				|| r.getChoices().get(0).getMessage() == null) {
 			return null;
 		}
-		String texto = r.choices().get(0).message().content();
+		String texto = r.getChoices().get(0).getMessage().getContent();
 		return texto == null || texto.isBlank() ? null : texto.trim();
 	}
 
 	/**
-	 * Respuesta de Groq.
+	 * Crea un mensaje de la conversación.
 	 *
-	 * @param choices respuestas generadas
+	 * @param rol   system o user
+	 * @param texto contenido
+	 * @return mensaje
 	 */
-	private record RespuestaGroq(List<Opcion> choices) {
-	}
-
-	/**
-	 * Una respuesta generada.
-	 *
-	 * @param message mensaje del asistente
-	 */
-	private record Opcion(Mensaje message) {
-	}
-
-	/**
-	 * Mensaje del asistente.
-	 *
-	 * @param content texto
-	 */
-	private record Mensaje(String content) {
+	private GroqMensajeDTO mensaje(String rol, String texto) {
+		GroqMensajeDTO m = new GroqMensajeDTO();
+		m.setRole(rol);
+		m.setContent(texto);
+		return m;
 	}
 }

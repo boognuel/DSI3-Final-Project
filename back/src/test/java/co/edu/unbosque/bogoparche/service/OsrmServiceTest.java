@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import com.google.gson.Gson;
+import co.edu.unbosque.bogoparche.dto.OsrmRespuestaDTO;
+import co.edu.unbosque.bogoparche.dto.TrayectoDTO;
 import co.edu.unbosque.bogoparche.exception.DatosInvalidosException;
 import co.edu.unbosque.bogoparche.exception.ServicioExternoException;
 import co.edu.unbosque.bogoparche.model.ModoTransporte;
@@ -18,12 +20,11 @@ class OsrmServiceTest {
 	private OsrmService osrmService;
 
 	/**
-	 * Crea el servicio con la URL del servidor de OSRM.
+	 * Crea el servicio.
 	 */
 	@BeforeEach
 	void setUp() {
 		osrmService = new OsrmService();
-		ReflectionTestUtils.setField(osrmService, "url", "https://routing.openstreetmap.de");
 	}
 
 	/**
@@ -48,12 +49,12 @@ class OsrmServiceTest {
 				"legs":[{"steps":[
 				{"name":"Calle 85","distance":350.0,"maneuver":{"type":"depart","modifier":"right"}},
 				{"name":"","distance":0,"maneuver":{"type":"arrive"}}]}]}]}""";
-		OsrmService.Trayecto t = osrmService.interpretar(json);
-		assertEquals(4121, t.distanciaMetros());
-		assertEquals(610, t.duracionSegundos());
-		assertTrue(t.geometriaGeoJson().contains("\"LineString\""));
-		assertEquals("depart right Calle 85 (350 m)", t.pasos().get(0));
-		assertEquals("arrive (0 m)", t.pasos().get(1));
+		TrayectoDTO t = osrmService.interpretar(new Gson().fromJson(json, OsrmRespuestaDTO.class));
+		assertEquals(4121, t.getDistanciaMetros());
+		assertEquals(610, t.getDuracionSegundos());
+		assertTrue(t.getGeometriaGeoJson().contains("\"LineString\""));
+		assertEquals("depart right Calle 85 (350 m)", t.getPasos().get(0));
+		assertEquals("arrive (0 m)", t.getPasos().get(1));
 	}
 
 	/**
@@ -61,15 +62,16 @@ class OsrmServiceTest {
 	 */
 	@Test
 	void sinCaminoRespondeDatosInvalidos() {
-		assertThrows(DatosInvalidosException.class,
-				() -> osrmService.interpretar("{\"code\":\"NoRoute\",\"message\":\"Impossible route\"}"));
+		OsrmRespuestaDTO r = new Gson().fromJson("{\"code\":\"NoRoute\",\"message\":\"Impossible route\"}",
+				OsrmRespuestaDTO.class);
+		assertThrows(DatosInvalidosException.class, () -> osrmService.interpretar(r));
 	}
 
 	/**
-	 * Una respuesta que no es JSON, por ejemplo una página de error, se trata como servicio caído.
+	 * Si OSRM no respondió o respondió algo que no es JSON, se trata como servicio caído.
 	 */
 	@Test
-	void respuestaNoValidaEsServicioCaido() {
-		assertThrows(ServicioExternoException.class, () -> osrmService.interpretar("<html>502 Bad Gateway</html>"));
+	void sinRespuestaEsServicioCaido() {
+		assertThrows(ServicioExternoException.class, () -> osrmService.interpretar(null));
 	}
 }

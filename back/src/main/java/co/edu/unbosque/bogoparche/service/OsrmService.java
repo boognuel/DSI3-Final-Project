@@ -1,24 +1,19 @@
 package co.edu.unbosque.bogoparche.service;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import co.edu.unbosque.bogoparche.dto.OsrmPasoDTO;
+import co.edu.unbosque.bogoparche.dto.OsrmRespuestaDTO;
+import co.edu.unbosque.bogoparche.dto.OsrmRutaDTO;
+import co.edu.unbosque.bogoparche.dto.OsrmTramoDTO;
+import co.edu.unbosque.bogoparche.dto.TrayectoDTO;
 import co.edu.unbosque.bogoparche.exception.DatosInvalidosException;
 import co.edu.unbosque.bogoparche.exception.ServicioExternoException;
 import co.edu.unbosque.bogoparche.model.ModoTransporte;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Calcula el camino por las calles con OSRM, el motor de rutas que usa el mapa de OpenStreetMap.
@@ -27,26 +22,8 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 public class OsrmService {
 	private static final Logger log = LoggerFactory.getLogger(OsrmService.class);
-	private static final JsonMapper JSON = JsonMapper.builder().build();
 	private static final String NO_DISPONIBLE = "El servicio de rutas no está disponible, intenta más tarde";
-	// Límite de pasos que se le pasan a Groq, para no enviar textos enormes en recorridos largos
 	private static final int MAX_PASOS = 40;
-
-	private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
-
-	@Value("${osrm.url}")
-	private String url;
-
-	/**
-	 * Resultado de OSRM: distancia, duración, la línea del camino y los pasos del recorrido.
-	 *
-	 * @param distanciaMetros  distancia total en metros
-	 * @param duracionSegundos duración aproximada en segundos, sin tráfico
-	 * @param geometriaGeoJson línea del camino en GeoJSON, para dibujarla en el mapa
-	 * @param pasos            giros del recorrido, por ejemplo "turn left Carrera 15 (1200 m)"
-	 */
-	public record Trayecto(int distanciaMetros, int duracionSegundos, String geometriaGeoJson, List<String> pasos) {
-	}
 
 	/**
 	 * Pide a OSRM el camino entre el origen y el destino.
@@ -60,20 +37,10 @@ public class OsrmService {
 	 * @throws DatosInvalidosException  si no hay camino por las calles entre los dos puntos
 	 * @throws ServicioExternoException si OSRM no responde o responde con un error
 	 */
-	public Trayecto calcular(ModoTransporte modo, double origenLat, double origenLon, double destinoLat,
+	public TrayectoDTO calcular(ModoTransporte modo, double origenLat, double origenLon, double destinoLat,
 			double destinoLon) {
-		HttpRequest peticion = HttpRequest
-				.newBuilder(URI.create(armarUrl(modo, origenLat, origenLon, destinoLat, destinoLon)))
-				.timeout(Duration.ofSeconds(15)).GET().build();
-		try {
-			return interpretar(http.send(peticion, HttpResponse.BodyHandlers.ofString()).body());
-		} catch (IOException e) {
-			log.error("No se pudo consultar OSRM: {}", e.getMessage());
-			throw new ServicioExternoException(NO_DISPONIBLE);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new ServicioExternoException(NO_DISPONIBLE);
-		}
+		return interpretar(ExternalHTTPRequestHandler.doGetOsrmAndConvertToDto(armarUrl(modo, origenLat, origenLon,
+				destinoLat, destinoLon)));
 	}
 
 	/**
@@ -88,51 +55,54 @@ public class OsrmService {
 	 * @return URL de la consulta
 	 */
 	String armarUrl(ModoTransporte modo, double origenLat, double origenLon, double destinoLat, double destinoLon) {
-		String perfil = switch (modo) {
-		case PIE -> "routed-foot";
-		case BICICLETA -> "routed-bike";
-		case CARRO -> "routed-car";
-		};
+		String perfil;
+		if (modo == ModoTransporte.PIE) {
+			perfil = "routed-foot";
+		} else if (modo == ModoTransporte.BICICLETA) {
+			perfil = "routed-bike";
+		} else {
+			perfil = "routed-car";
+		}
 		return String.format(Locale.ROOT,
-				"%s/%s/route/v1/driving/%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson&steps=true", url, perfil,
-				origenLon, origenLat, destinoLon, destinoLat);
+				"%s/%s/route/v1/driving/%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson&steps=true",
+				ExternalHTTPRequestHandler.URL_OSRM, perfil, origenLon, origenLat, destinoLon, destinoLat);
 	}
 
 	/**
 	 * Lee la respuesta de OSRM.
 	 *
-	 * @param cuerpo JSON de la respuesta
+	 * @param r respuesta convertida, o null si OSRM no respondió
 	 * @return trayecto de la primera ruta
 	 * @throws DatosInvalidosException  si OSRM no encontró camino
 	 * @throws ServicioExternoException si la respuesta no es válida
 	 */
-	Trayecto interpretar(String cuerpo) {
-		RespuestaOsrm r;
-		try {
-			r = JSON.readValue(cuerpo, RespuestaOsrm.class);
-		} catch (JacksonException e) {
-			log.error("Respuesta de OSRM no válida: {}", e.getOriginalMessage());
+	TrayectoDTO interpretar(OsrmRespuestaDTO r) {
+		if (r == null) {
 			throw new ServicioExternoException(NO_DISPONIBLE);
 		}
-		if ("NoRoute".equals(r.code())) {
+		if ("NoRoute".equals(r.getCode())) {
 			throw new DatosInvalidosException("No hay un camino por las calles entre tu ubicación y el lugar");
 		}
-		if (!"Ok".equals(r.code()) || r.routes() == null || r.routes().isEmpty()) {
-			log.error("OSRM respondió con el código {}", r.code());
+		if (!"Ok".equals(r.getCode()) || r.getRoutes() == null || r.getRoutes().isEmpty()) {
+			log.error("OSRM respondió con el código {}", r.getCode());
 			throw new ServicioExternoException(NO_DISPONIBLE);
 		}
-		RutaOsrm ruta = r.routes().get(0);
+		OsrmRutaDTO ruta = r.getRoutes().get(0);
 		List<String> pasos = new ArrayList<>();
-		if (ruta.legs() != null) {
-			for (TramoOsrm tramo : ruta.legs()) {
-				if (tramo.steps() != null) {
-					tramo.steps().stream().map(OsrmService::describir).forEach(pasos::add);
+		if (ruta.getLegs() != null) {
+			for (OsrmTramoDTO tramo : ruta.getLegs()) {
+				if (tramo.getSteps() != null) {
+					for (OsrmPasoDTO paso : tramo.getSteps()) {
+						if (pasos.size() < MAX_PASOS) {
+							pasos.add(describir(paso));
+						}
+					}
 				}
 			}
 		}
-		return new Trayecto((int) Math.round(ruta.distance()), (int) Math.round(ruta.duration()),
-				ruta.geometry() == null ? null : ruta.geometry().toString(),
-				List.copyOf(pasos.subList(0, Math.min(pasos.size(), MAX_PASOS))));
+		String geometria = ruta.getGeometry() == null ? null : ruta.getGeometry().toString();
+		return new TrayectoDTO((int) Math.round(ruta.getDistance()), (int) Math.round(ruta.getDuration()), geometria,
+				pasos);
 	}
 
 	/**
@@ -141,64 +111,17 @@ public class OsrmService {
 	 * @param p paso de OSRM
 	 * @return descripción del paso
 	 */
-	private static String describir(PasoOsrm p) {
+	private String describir(OsrmPasoDTO p) {
 		StringBuilder sb = new StringBuilder();
-		if (p.maneuver() != null) {
-			sb.append(p.maneuver().type());
-			if (p.maneuver().modifier() != null) {
-				sb.append(" ").append(p.maneuver().modifier());
+		if (p.getManeuver() != null) {
+			sb.append(p.getManeuver().getType());
+			if (p.getManeuver().getModifier() != null) {
+				sb.append(" ").append(p.getManeuver().getModifier());
 			}
 		}
-		if (p.name() != null && !p.name().isBlank()) {
-			sb.append(" ").append(p.name());
+		if (p.getName() != null && !p.getName().isBlank()) {
+			sb.append(" ").append(p.getName());
 		}
-		return sb.append(" (").append(Math.round(p.distance())).append(" m)").toString().trim();
-	}
-
-	/**
-	 * Respuesta de OSRM.
-	 *
-	 * @param code   "Ok" si encontró ruta
-	 * @param routes rutas encontradas
-	 */
-	private record RespuestaOsrm(String code, List<RutaOsrm> routes) {
-	}
-
-	/**
-	 * Ruta de OSRM.
-	 *
-	 * @param distance distancia en metros
-	 * @param duration duración en segundos
-	 * @param geometry línea en GeoJSON
-	 * @param legs     tramos entre los puntos
-	 */
-	private record RutaOsrm(double distance, double duration, JsonNode geometry, List<TramoOsrm> legs) {
-	}
-
-	/**
-	 * Tramo de una ruta de OSRM.
-	 *
-	 * @param steps pasos del tramo
-	 */
-	private record TramoOsrm(List<PasoOsrm> steps) {
-	}
-
-	/**
-	 * Paso de un tramo de OSRM.
-	 *
-	 * @param name     nombre de la vía
-	 * @param distance distancia del paso en metros
-	 * @param maneuver maniobra al iniciar el paso
-	 */
-	private record PasoOsrm(String name, double distance, Maniobra maneuver) {
-	}
-
-	/**
-	 * Maniobra de un paso de OSRM.
-	 *
-	 * @param type     tipo, por ejemplo "turn" o "depart"
-	 * @param modifier dirección, por ejemplo "left"
-	 */
-	private record Maniobra(String type, String modifier) {
+		return sb.append(" (").append(Math.round(p.getDistance())).append(" m)").toString().trim();
 	}
 }
