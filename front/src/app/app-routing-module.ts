@@ -17,6 +17,8 @@ import { Invitacioncomponent } from './components/invitacioncomponent/invitacion
 import { Rutacomponent } from './components/rutacomponent/rutacomponent';
 import { Perfilcomponent } from './components/perfilcomponent/perfilcomponent';
 import { Adminusuarioscomponent } from './components/adminusuarioscomponent/adminusuarioscomponent';
+import { Admincategoriascomponent } from './components/admincategoriascomponent/admincategoriascomponent';
+import { Adminzonascomponent } from './components/adminzonascomponent/adminzonascomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -37,6 +39,8 @@ const routes: Routes = [
   { path: 'ruta/:salidaId/:lugarId', component: Rutacomponent, canActivate: [AuthGuard] },
   { path: 'perfil', component: Perfilcomponent, canActivate: [AuthGuard] },
   { path: 'admin/usuarios', component: Adminusuarioscomponent, canActivate: [AdminGuard] },
+  { path: 'admin/categorias', component: Admincategoriascomponent, canActivate: [AdminGuard] },
+  { path: 'admin/zonas', component: Adminzonascomponent, canActivate: [AdminGuard] },
   { path: 'admin', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
