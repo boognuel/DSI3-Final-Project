@@ -132,12 +132,12 @@ class LugarServiceTest {
 		l.setZona(zona);
 		l.setCategoria(categoria);
 		l.setCostoEstimado(new BigDecimal("5000"));
-		when(lugarRepo.alcanzables(new BigDecimal("5000"))).thenReturn(List.of(l));
+		when(lugarRepo.findByCostoEstimadoLessThanEqualOrderByCostoEstimadoAscNombreAsc(new BigDecimal("5000"))).thenReturn(List.of(l));
 		List<LugarDTO> lugares = lugarService.recomendar(new BigDecimal("5000"), List.of());
 		assertEquals(1, lugares.size());
 		assertEquals("Usaquén", lugares.get(0).getZonaNombre());
 		assertEquals("comer", lugares.get(0).getCategoriaNombre());
-		verify(lugarRepo, never()).alcanzablesEnCategorias(any(), any());
+		verify(lugarRepo, never()).findByCostoEstimadoLessThanEqualAndCategoriaIdInOrderByCostoEstimadoAscNombreAsc(any(), any());
 	}
 
 	/**
@@ -146,8 +146,8 @@ class LugarServiceTest {
 	@Test
 	void recomiendaSoloLasCategoriasDelUsuario() {
 		lugarService.recomendar(new BigDecimal("20000"), List.of(2L, 4L));
-		verify(lugarRepo).alcanzablesEnCategorias(new BigDecimal("20000"), List.of(2L, 4L));
-		verify(lugarRepo, never()).alcanzables(any());
+		verify(lugarRepo).findByCostoEstimadoLessThanEqualAndCategoriaIdInOrderByCostoEstimadoAscNombreAsc(new BigDecimal("20000"), List.of(2L, 4L));
+		verify(lugarRepo, never()).findByCostoEstimadoLessThanEqualOrderByCostoEstimadoAscNombreAsc(any());
 	}
 
 	/**
