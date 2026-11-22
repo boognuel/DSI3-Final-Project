@@ -1,11 +1,16 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
+/**
+ * Pie de página.
+ */
 @Component({
   selector: 'app-footercomponent',
   standalone: false,
-  templateUrl: './footercomponent.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './footercomponent.css',
+  templateUrl: './footercomponent.html',
 })
 export class Footercomponent {
-  anio = new Date().getFullYear();
+  /** Año actual. */
+  anio: number = new Date().getFullYear();
 }
