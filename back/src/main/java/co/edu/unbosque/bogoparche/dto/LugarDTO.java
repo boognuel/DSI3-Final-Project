@@ -35,4 +35,5 @@ public class LugarDTO {
 	@NotNull(message = "El costo estimado por persona es obligatorio")
 	@PositiveOrZero(message = "El costo estimado no puede ser negativo")
 	private BigDecimal costoEstimado;
+	private boolean precioEstimado;
 }

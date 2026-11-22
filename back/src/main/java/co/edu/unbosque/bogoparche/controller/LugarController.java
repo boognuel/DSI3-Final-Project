@@ -20,6 +20,7 @@ import co.edu.unbosque.bogoparche.model.ResultadoAuditoria;
 import co.edu.unbosque.bogoparche.model.User;
 import co.edu.unbosque.bogoparche.service.AuditoriaService;
 import co.edu.unbosque.bogoparche.service.LugarService;
+import co.edu.unbosque.bogoparche.service.OverpassService;
 import jakarta.validation.Valid;
 
 /**
@@ -32,6 +33,8 @@ public class LugarController {
 	@Autowired
 	private LugarService lugarService;
 	@Autowired
+	private OverpassService overpassService;
+	@Autowired
 	private AuditoriaService auditoriaService;
 
 	/**
@@ -41,7 +44,7 @@ public class LugarController {
 	 * @param auth administrador autenticado
 	 * @return 201 con el lugar creado
 	 */
-	@PostMapping("/create")
+	@PostMapping("/createjson")
 	public ResponseEntity<LugarDTO> create(@Valid @RequestBody LugarDTO dto, Authentication auth) {
 		lugarService.create(dto);
 		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Lugar",
@@ -81,7 +84,7 @@ public class LugarController {
 	 * @param auth administrador autenticado
 	 * @return 200 si el lugar se actualizó
 	 */
-	@PutMapping("/update/{id}")
+	@PutMapping("/updatejson/{id}")
 	public ResponseEntity<String> update(@PathVariable Long id, @Valid @RequestBody LugarDTO dto,
 			Authentication auth) {
 		lugarService.updateById(id, dto);
@@ -103,5 +106,20 @@ public class LugarController {
 		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Lugar", id,
 				"Eliminó el lugar", ResultadoAuditoria.EXITO);
 		return ResponseEntity.ok("Lugar eliminado");
+	}
+
+	/**
+	 * Carga o actualiza los lugares desde OpenStreetMap según las etiquetas de las categorías y las
+	 * latitudes de las zonas.
+	 *
+	 * @param auth administrador autenticado
+	 * @return 200 con el número de lugares agregados y actualizados
+	 */
+	@PostMapping("/cargarosm")
+	public ResponseEntity<String> cargarOsm(Authentication auth) {
+		String resumen = overpassService.cargarLugares();
+		auditoriaService.registrar((User) auth.getPrincipal(), AccionAuditoria.GESTION_CATALOGO, "Lugar", null,
+				"Cargó lugares de OpenStreetMap: " + resumen, ResultadoAuditoria.EXITO);
+		return ResponseEntity.ok(resumen);
 	}
 }

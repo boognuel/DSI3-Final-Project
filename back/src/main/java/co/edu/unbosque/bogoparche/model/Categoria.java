@@ -1,5 +1,6 @@
 package co.edu.unbosque.bogoparche.model;
 
+import java.math.BigDecimal;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,4 +27,8 @@ public class Categoria {
 	@Column(nullable = false, unique = true, length = 50)
 	private String nombre;
 	private String descripcion;
+	@Column(length = 200)
+	private String etiquetaOsm;
+	@Column(precision = 14, scale = 2)
+	private BigDecimal precioReferencia;
 }

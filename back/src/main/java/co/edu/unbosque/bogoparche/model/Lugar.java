@@ -8,7 +8,8 @@ import lombok.Setter;
 
 /**
  * Plan que crea el equipo (por ejemplo una panadería o una discoteca), con su ubicación, su
- * categoría, su zona y su tarifa de referencia por persona.
+ * categoría, su zona y lo que gasta en promedio una persona. Los lugares que llegan de OpenStreetMap
+ * guardan su identificador allí y, mientras el administrador no corrija el precio, lo tienen estimado.
  */
 @Entity
 @Table(name = "lugar")
@@ -31,7 +32,9 @@ public class Lugar {
 	private String direccion;
 	private Double latitud;
 	private Double longitud;
-	// Tarifa de referencia: lo que gasta en promedio una persona en el lugar
 	@Column(precision = 14, scale = 2)
 	private BigDecimal costoEstimado;
+	private boolean precioEstimado;
+	@Column(unique = true, length = 40)
+	private String osmId;
 }
