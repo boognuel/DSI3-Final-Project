@@ -1,0 +1,50 @@
+<section class="auth-pagina">
+  <div class="card auth-tarjeta">
+    <h1>Ingresa a tu cuenta</h1>
+    <p class="sub">Entra para crear salidas y guardar tus planes.</p>
+    @if (mensaje !== '') {
+      <div class="alerta alerta-error" role="alert">
+        {{ mensaje }}
+        @if (sinVerificar) {
+          <a routerLink="/verify-email">Reenviar correo de verificación</a>
+        }
+      </div>
+    }
+    <form (ngSubmit)="ingresar()" novalidate>
+      <div class="campo">
+        <label for="username">Usuario</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          [(ngModel)]="username"
+          [class.invalido]="errorUsername !== ''"
+          placeholder="parchero.norte"
+          autocomplete="username"
+        />
+        @if (errorUsername !== '') {
+          <span class="error">{{ errorUsername }}</span>
+        }
+      </div>
+      <div class="campo">
+        <label for="password">Contraseña</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          [(ngModel)]="password"
+          [class.invalido]="errorPassword !== ''"
+          autocomplete="current-password"
+        />
+        @if (errorPassword !== '') {
+          <span class="error">{{ errorPassword }}</span>
+        }
+      </div>
+      <button class="btn btn-primary btn-block" type="submit" [disabled]="enviando">
+        {{ enviando ? 'Ingresando...' : 'Ingresar' }}
+      </button>
+    </form>
+    <p class="auth-pie"><a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a></p>
+    <p class="auth-pie">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>
+  </div>
+</section>
