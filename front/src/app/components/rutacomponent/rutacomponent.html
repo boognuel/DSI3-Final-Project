@@ -1,0 +1,57 @@
+<div class="container py-4">
+  <a [routerLink]="['/salidas', salidaId]" class="small"
+    ><i class="fa-solid fa-arrow-left me-1"></i>Volver a la salida</a
+  >
+  <h1 class="h3 mt-2 mb-3">Cómo llegar{{ ruta !== null ? ' a ' + ruta.destinoNombre : '' }}</h1>
+  <div class="btn-group mb-3" role="group" aria-label="Medio de transporte">
+    @for (m of modos; track m.valor) {
+      <button
+        type="button"
+        class="btn"
+        [class.btn-primary]="modo === m.valor"
+        [class.btn-outline-primary]="modo !== m.valor"
+        (click)="cambiarModo(m.valor)"
+        [disabled]="calculando"
+      >
+        <i class="fa-solid fa-{{ m.icono }} me-1"></i>{{ m.texto }}
+      </button>
+    }
+  </div>
+  @if (mensaje !== '') {
+    <div class="alert alert-warning">{{ mensaje }}</div>
+  }
+  @if (calculando) {
+    <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+  }
+  @if (ruta !== null) {
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="tarjeta p-4">
+          <div class="d-flex gap-4 mb-3">
+            <div>
+              <div class="small text-suave">Distancia</div>
+              <div class="h5 mb-0">{{ formato.distancia(ruta.distanciaMetros) }}</div>
+            </div>
+            <div>
+              <div class="small text-suave">Tiempo estimado</div>
+              <div class="h5 mb-0">{{ formato.duracion(ruta.duracionSegundos) }}</div>
+            </div>
+          </div>
+          <p class="indicaciones">{{ ruta.indicaciones }}</p>
+          <p class="small text-suave mb-0">
+            Ruta calculada con OSRM y datos de OpenStreetMap. Indicaciones redactadas con Groq.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <app-mapacomponent
+          [latitud]="ubicacion.latitud"
+          [longitud]="ubicacion.longitud"
+          [marcadores]="marcadores"
+          [ruta]="puntos"
+          alto="520px"
+        ></app-mapacomponent>
+      </div>
+    </div>
+  }
+</div>

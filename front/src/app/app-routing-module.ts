@@ -13,6 +13,7 @@ import { Salidascomponent } from './components/salidascomponent/salidascomponent
 import { Salidaformcomponent } from './components/salidaformcomponent/salidaformcomponent';
 import { Salidadetallecomponent } from './components/salidadetallecomponent/salidadetallecomponent';
 import { Invitacioncomponent } from './components/invitacioncomponent/invitacioncomponent';
+import { Rutacomponent } from './components/rutacomponent/rutacomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -30,6 +31,7 @@ const routes: Routes = [
   { path: 'salidas/editar/:id', component: Salidaformcomponent, canActivate: [AuthGuard] },
   { path: 'salidas/:id', component: Salidadetallecomponent, canActivate: [AuthGuard] },
   { path: 'invitacion', component: Invitacioncomponent },
+  { path: 'ruta/:salidaId/:lugarId', component: Rutacomponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '' },
 ];
 
