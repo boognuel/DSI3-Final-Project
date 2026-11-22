@@ -1,0 +1,237 @@
+<app-adminbarracomponent></app-adminbarracomponent>
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Lugares</h1>
+    <button type="button" class="btn btn-acento" (click)="cargarOsm()" [disabled]="cargandoOsm">
+      @if (cargandoOsm) {
+        <span class="spinner-border spinner-border-sm me-2"></span>Cargando, puede tardar un poco
+      } @else {
+        <i class="fa-solid fa-rotate me-1"></i>Cargar desde OpenStreetMap
+      }
+    </button>
+  </div>
+  @if (mensaje !== '') {
+    <div class="alert alert-danger">{{ mensaje }}</div>
+  }
+  @if (aviso !== '') {
+    <div class="alert alert-success">{{ aviso }}</div>
+  }
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="row g-2 mb-3">
+        <div class="col-md-5">
+          <input
+            id="f_nombre"
+            name="filtroNombre"
+            type="search"
+            class="form-control"
+            [(ngModel)]="filtroNombre"
+            placeholder="Nombre"
+            aria-label="Filtrar por nombre"
+          />
+        </div>
+        <div class="col-md-3">
+          <select
+            id="f_categoria"
+            name="filtroCategoria"
+            class="form-select"
+            [(ngModel)]="filtroCategoria"
+            (ngModelChange)="buscar()"
+            aria-label="Filtrar por categoría"
+          >
+            <option [ngValue]="null">Todas las categorías</option>
+            @for (c of categorias; track c.id) {
+              <option [ngValue]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select
+            id="f_zona"
+            name="filtroZona"
+            class="form-select"
+            [(ngModel)]="filtroZona"
+            (ngModelChange)="buscar()"
+            aria-label="Filtrar por zona"
+          >
+            <option [ngValue]="null">Todas las zonas</option>
+            @for (z of zonas; track z.id) {
+              <option [ngValue]="z.id">{{ z.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="tarjeta table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Lugar</th>
+              <th>Zona</th>
+              <th>Gasto por persona</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of filtrados(); track l.id) {
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ l.nombre }}</div>
+                  <div class="small text-suave">{{ l.categoriaNombre }} . {{ l.direccion }}</div>
+                </td>
+                <td class="small">{{ l.zonaNombre }}</td>
+                <td>
+                  {{ formato.pesos(l.costoEstimado) }}
+                  @if (l.precioEstimado) {
+                    <span class="badge badge-acento ms-1">Estimado</span>
+                  }
+                </td>
+                <td class="text-end text-nowrap">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary me-1"
+                    (click)="editar(l)"
+                    aria-label="Editar"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="eliminar(l)"
+                    aria-label="Eliminar"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center text-suave py-4">
+                  No hay lugares. Cárgalos desde OpenStreetMap o crea uno.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="tarjeta p-4">
+        <h2 class="h5 mb-3">{{ editando === null ? 'Nuevo lugar' : 'Editar lugar' }}</h2>
+        <form (ngSubmit)="guardar()" novalidate>
+          <div class="mb-2">
+            <label for="l_nombre" class="form-label">Nombre</label>
+            <input
+              id="l_nombre"
+              name="nombre"
+              class="form-control"
+              [class.is-invalid]="errores['nombre']"
+              [(ngModel)]="nombre"
+            />
+            <div class="invalid-feedback">{{ errores['nombre'] }}</div>
+          </div>
+          <div class="mb-2">
+            <label for="l_descripcion" class="form-label">Descripción</label>
+            <input
+              id="l_descripcion"
+              name="descripcion"
+              class="form-control"
+              [(ngModel)]="descripcion"
+            />
+          </div>
+          <div class="mb-2">
+            <label for="l_direccion" class="form-label">Dirección</label>
+            <input
+              id="l_direccion"
+              name="direccion"
+              class="form-control"
+              [class.is-invalid]="errores['direccion']"
+              [(ngModel)]="direccion"
+            />
+            <div class="invalid-feedback">{{ errores['direccion'] }}</div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label for="l_lat" class="form-label">Latitud</label>
+              <input
+                id="l_lat"
+                name="latitud"
+                type="number"
+                step="0.0001"
+                class="form-control"
+                [class.is-invalid]="errores['latitud']"
+                [(ngModel)]="latitud"
+              />
+              <div class="invalid-feedback">{{ errores['latitud'] }}</div>
+            </div>
+            <div class="col-6">
+              <label for="l_lon" class="form-label">Longitud</label>
+              <input
+                id="l_lon"
+                name="longitud"
+                type="number"
+                step="0.0001"
+                class="form-control"
+                [class.is-invalid]="errores['longitud']"
+                [(ngModel)]="longitud"
+              />
+              <div class="invalid-feedback">{{ errores['longitud'] }}</div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label for="l_categoria" class="form-label">Categoría</label>
+            <select
+              id="l_categoria"
+              name="categoriaId"
+              class="form-select"
+              [class.is-invalid]="errores['categoriaId']"
+              [(ngModel)]="categoriaId"
+            >
+              <option [ngValue]="null">Elige una opción</option>
+              @for (c of categorias; track c.id) {
+                <option [ngValue]="c.id">{{ c.nombre }}</option>
+              }
+            </select>
+            <div class="invalid-feedback">{{ errores['categoriaId'] }}</div>
+          </div>
+          <div class="mb-2">
+            <label for="l_zona" class="form-label">Zona</label>
+            <select
+              id="l_zona"
+              name="zonaId"
+              class="form-select"
+              [class.is-invalid]="errores['zonaId']"
+              [(ngModel)]="zonaId"
+            >
+              <option [ngValue]="null">Elige una opción</option>
+              @for (z of zonas; track z.id) {
+                <option [ngValue]="z.id">{{ z.nombre }}</option>
+              }
+            </select>
+            <div class="invalid-feedback">{{ errores['zonaId'] }}</div>
+          </div>
+          <div class="mb-3">
+            <label for="l_costo" class="form-label">Gasto por persona</label>
+            <input
+              id="l_costo"
+              name="costoEstimado"
+              type="number"
+              min="0"
+              class="form-control"
+              [class.is-invalid]="errores['costoEstimado']"
+              [(ngModel)]="costoEstimado"
+            />
+            <div class="invalid-feedback">{{ errores['costoEstimado'] }}</div>
+            <div class="form-text">Al guardarlo deja de ser estimado.</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="nuevo()">
+              Limpiar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
