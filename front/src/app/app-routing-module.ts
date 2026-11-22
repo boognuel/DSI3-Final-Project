@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth.guard';
 import { GuestGuard } from './guards/guest.guard';
 import { Logincomponent } from './components/logincomponent/logincomponent';
 import { Registrocomponent } from './components/registrocomponent/registrocomponent';
@@ -7,6 +8,7 @@ import { Verificaremailcomponent } from './components/verificaremailcomponent/ve
 import { Olvidopasswordcomponent } from './components/olvidopasswordcomponent/olvidopasswordcomponent';
 import { Restablecerpasswordcomponent } from './components/restablecerpasswordcomponent/restablecerpasswordcomponent';
 import { Iniciocomponent } from './components/iniciocomponent/iniciocomponent';
+import { Buscadorcomponent } from './components/buscadorcomponent/buscadorcomponent';
 
 /**
  * Rutas de la aplicación con su componente y su guarda.
@@ -18,6 +20,7 @@ const routes: Routes = [
   { path: 'forgot-password', component: Olvidopasswordcomponent, canActivate: [GuestGuard] },
   { path: 'reset-password', component: Restablecerpasswordcomponent },
   { path: '', component: Iniciocomponent },
+  { path: 'planes', component: Buscadorcomponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '' },
 ];
 

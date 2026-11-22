@@ -1,0 +1,6 @@
+.mapa {
+  width: 100%;
+  border-radius: var(--bp-radio);
+  border: 1px solid var(--bp-borde);
+  z-index: 0;
+}

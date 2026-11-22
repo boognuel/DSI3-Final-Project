@@ -1,0 +1,60 @@
+.hero {
+  background: radial-gradient(circle at 20% 0%, #2a0f63 0%, var(--bp-fondo) 65%);
+  border-bottom: 1px solid var(--bp-borde);
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.hero h1 span {
+  color: var(--bp-amarillo);
+}
+
+.presupuesto {
+  max-width: 560px;
+}
+
+.chip {
+  background-color: transparent;
+  color: var(--bp-texto);
+  border: 1px solid var(--bp-borde);
+}
+
+.chip:hover {
+  border-color: var(--bp-amarillo);
+  color: var(--bp-amarillo);
+}
+
+.chip.activo {
+  background-color: var(--bp-amarillo);
+  color: var(--bp-fondo);
+  border-color: var(--bp-amarillo);
+}
+
+.resultado {
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    transform 0.15s;
+}
+
+.resultado:hover {
+  transform: translateY(-1px);
+}
+
+.resultado.elegido {
+  border-color: var(--bp-amarillo);
+  box-shadow: 0 0 0 2px rgba(254, 202, 3, 0.25);
+}
+
+.lista {
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.mapa-fijo {
+  position: sticky;
+  top: 1rem;
+}
