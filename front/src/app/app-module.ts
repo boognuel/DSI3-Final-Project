@@ -27,6 +27,7 @@ import { Adminusuarioscomponent } from './components/adminusuarioscomponent/admi
 import { Admincategoriascomponent } from './components/admincategoriascomponent/admincategoriascomponent';
 import { Adminzonascomponent } from './components/adminzonascomponent/adminzonascomponent';
 import { Adminlugarescomponent } from './components/adminlugarescomponent/adminlugarescomponent';
+import { Adminsalidascomponent } from './components/adminsalidascomponent/adminsalidascomponent';
 
 /**
  * Módulo raíz: declara los componentes, importa el enrutamiento y los formularios, y registra el cliente HTTP con el interceptor de autenticación.
@@ -56,6 +57,7 @@ import { Adminlugarescomponent } from './components/adminlugarescomponent/adminl
     Admincategoriascomponent,
     Adminzonascomponent,
     Adminlugarescomponent,
+    Adminsalidascomponent,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [
