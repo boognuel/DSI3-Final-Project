@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { AppModule } from '../../app-module';
 import { Avisoubicacioncomponent } from './avisoubicacioncomponent';
 
 describe('Avisoubicacioncomponent', () => {
@@ -7,7 +9,8 @@ describe('Avisoubicacioncomponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [Avisoubicacioncomponent],
+      imports: [AppModule],
+      providers: [provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Avisoubicacioncomponent);
