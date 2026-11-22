@@ -113,7 +113,16 @@ public class AuditoriaService {
 		PageRequest pr = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),
 				Sort.by(Sort.Direction.DESC, "fecha"));
 		String u = usuario == null ? "" : usuario.trim();
-		return accion == null ? repo.buscar(u, desde, hasta, pr) : repo.buscarPorAccion(u, accion, desde, hasta, pr);
+		if (u.isEmpty()) {
+			if (accion == null) {
+				return repo.findByFechaBetween(desde, hasta, pr);
+			}
+			return repo.findByAccionAndFechaBetween(accion, desde, hasta, pr);
+		}
+		if (accion == null) {
+			return repo.findByUsuarioNombreContainingIgnoreCaseAndFechaBetween(u, desde, hasta, pr);
+		}
+		return repo.findByUsuarioNombreContainingIgnoreCaseAndAccionAndFechaBetween(u, accion, desde, hasta, pr);
 	}
 
 	/**
