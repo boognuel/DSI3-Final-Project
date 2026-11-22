@@ -83,6 +83,7 @@
               </div>
               <div class="text-end">
                 <div>{{ formato.pesos(l.costoEstimadoPorPersona) }}</div>
+                <a [routerLink]="['/ruta', salida.id, l.lugarId]" class="small">Cómo llegar</a>
                 @if (esOrganizador() && vigente() && !l.seleccionado) {
                   <button
                     type="button"
